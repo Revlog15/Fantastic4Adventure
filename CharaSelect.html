@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Selection - Fantastic 4: Adventure At Nusantara</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: linear-gradient(to bottom, #9be36d, #76c44d);
+            background-size: cover;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('mountains-bg.jpg'); /* Replace with your background or use CSS */
+            background-size: cover;
+            opacity: 0.3;
+            z-index: -1;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 800px;
+            position: relative;
+            text-align: center;
+            z-index: 1;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            color: white;
+            text-decoration: none;
+            z-index: 10; /* Ensure it's above other elements */
+            background: none;
+            border: none;
+            padding: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        h1 {
+            font-size: 42px;
+            margin-bottom: 60px;
+            font-weight: bold;
+        }
+        
+        .character-selection {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+        
+        .arrow {
+            font-size: 40px;
+            cursor: pointer;
+            margin: 0 40px;
+            user-select: none;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.3);
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .arrow:hover {
+            background-color: rgba(0, 0, 0, 0.6);
+            transform: scale(1.1);
+        }
+        
+        .character-container {
+            width: 200px;
+            height: 200px;
+            position: relative;
+        }
+        
+        .character {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            display: none;
+            object-fit: scale-down;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.7);
+            border: 4px solid white;
+        }
+        
+        .character.active {
+            display: block;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 255, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+        }
+        
+        .character-name {
+            font-size: 32px;
+            margin-top: 20px;
+            margin-bottom: 40px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .continue-button {
+            padding: 15px 80px;
+            font-size: 28px;
+            cursor: pointer;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #4a8c32;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .continue-button:hover {
+            background-color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+        
+        .game-title {
+            font-size: 24px;
+            margin-bottom: 5px;
+            opacity: 0.9;
+        }
+        
+        .game-subtitle {
+            font-size: 18px;
+            margin-bottom: 40px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Changed from div to button for better accessibility and click behavior -->
+        <button class="back-button" onclick="goToMenu()">
+            &#60; <span style="margin-left: 10px;">Back to menu</span>
+        </button>
+        
+        <div class="game-title">Fantastic 4</div>
+        <div class="game-subtitle">Adventure At Nusantara</div>
+        
+        <h1>Select Your Character</h1>
+        
+        <div class="character-selection">
+            <div class="arrow" onclick="changeCharacter(-1)">&#60;</div>
+            
+            <div>
+                <div class="character-container">
+                    <img src="/Character/Revlog.png" class="character character1 active">
+                    <img src="/Character/Robert.png" alt="Character 2" class="character character2">
+                    <img src="/Character/Sam.png" alt="Character 3" class="character character3">
+                    <img src="/Character/Dimsum.png" alt="Character 4" class="character character4">
+                </div>
+                <div class="character-name" id="characterName">REVLOG</div>
+            </div>
+            
+            <div class="arrow" onclick="changeCharacter(1)">&#62;</div>
+        </div>
+        
+        <button class="continue-button" onclick="startGame()">START</button>
+    </div>
+    
+    <script>
+        const characters = [
+            { name: "REVLOG", id: 1, image: "Revlog.png" },
+            { name: "ROBERT", id: 2, image: "Robert.png" },
+            { name: "SAM", id: 3, image: "Sam.png" },
+            { name: "DIMSUM", id: 4, image: "Dimsum.png" }
+        ];
+        
+        let currentCharacter = 0;
+        
+        // Initialize character images
+        updateCharacterDisplay();
+        
+        function changeCharacter(direction) {
+            // Hide current character
+            document.querySelector(`.character${characters[currentCharacter].id}`).classList.remove('active');
+            
+            // Update index with wrap-around
+            currentCharacter = (currentCharacter + direction + characters.length) % characters.length;
+            
+            updateCharacterDisplay();
+        }
+        
+        function updateCharacterDisplay() {
+            // Show current character
+            document.querySelector(`.character${characters[currentCharacter].id}`).classList.add('active');
+            
+            // Update name
+            document.getElementById('characterName').textContent = characters[currentCharacter].name;
+        }
+        
+        function goToMenu() {
+            console.log("Going back to menu"); // Debug line
+            window.location.href = "index.html"; 
+        }
+        
+        function startGame() {
+            const selectedCharacter = characters[currentCharacter].name;
+            localStorage.setItem('selectedCharacter', selectedCharacter);
+            // Redirect to game page with the selected character
+            window.location.href = `game.html?character=${selectedCharacter.toLowerCase()}`;
+        }
+    </script>
+</body>
+</html>
