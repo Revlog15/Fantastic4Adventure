@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Adventure</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #121212;
+            color: #f0f0f0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Layout Utama */
+        .game-container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+        
+        /* Area Peta/Map */
+        .map-area {
+            flex: 1;
+            background-color: #1e1e1e;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .map {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .map-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 60px);
+            grid-template-rows: repeat(10, 60px);
+            gap: 2px;
+        }
+        
+        .map-tile {
+            width: 60px;
+            height: 60px;
+            background-color: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .map-tile:hover {
+            background-color: #3f3f3f;
+            transform: scale(1.05);
+        }
+        
+        .map-tile.grass {
+            background-color: #1a472a;
+        }
+        
+        .map-tile.water {
+            background-color: #0e639c;
+        }
+        
+        .map-tile.mountain {
+            background-color: #5c5c5c;
+        }
+        
+        .map-tile.cave {
+            background-color: #4e2a84;
+        }
+        
+        .map-tile.player {
+            background-color: #d4af37;
+            border: 2px solid #ffffff;
+        }
+        
+        /* Panel Kanan - Tombol Aksi */
+        .action-panel {
+            width: 250px;
+            background-color: #252525;
+            border-left: 2px solid #444;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+        }
+        
+        .action-button {
+            background-color: #444;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 12px;
+            margin: 8px 0;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        
+        .action-button:hover {
+            background-color: #555;
+            transform: translateY(-2px);
+        }
+        
+        .action-button:active {
+            transform: translateY(1px);
+        }
+        
+        .action-button.attack {
+            background-color: #8b0000;
+        }
+        
+        .action-button.explore {
+            background-color: #006400;
+        }
+        
+        .action-button.heal {
+            background-color: #4169e1;
+        }
+        
+        .action-button.inventory {
+            background-color: #cd853f;
+        }
+        
+        /* Panel Atas - Logo dan Status */
+        .top-panel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 250px; /* Lebar action panel */
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            z-index: 10;
+        }
+        
+        .logo-area {
+            text-align: center;
+            padding-bottom: 10px;
+        }
+        
+        .logo {
+            font-size: 30px;
+            font-weight: bold;
+            color: #d4af37; /* Warna gold */
+            text-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
+            letter-spacing: 2px;
+        }
+        
+        .divider {
+            height: 2px;
+            background-color: #444;
+            margin: 10px 0;
+        }
+        
+        .status-area {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+        }
+        
+        .status-bar {
+            flex: 1;
+            margin: 0 5px;
+        }
+        
+        .status-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+            font-size: 14px;
+        }
+        
+        .status-progress {
+            height: 12px;
+            background-color: #333;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .status-fill {
+            height: 100%;
+            width: 75%; /* Default value */
+            transition: width 0.5s;
+        }
+        
+        .status-fill.health {
+            background-color: #cc0000;
+        }
+        
+        .status-fill.energy {
+            background-color: #ffcc00;
+        }
+        
+        .status-fill.mana {
+            background-color: #0066cc;
+        }
+        
+        .status-fill.exp {
+            background-color: #00cc66;
+        }
+        
+        .money-display {
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            font-weight: bold;
+            color: #d4af37;
+        }
+        
+        .money-icon {
+            margin-right: 5px;
+        }
+        
+        /* Game log area */
+        .game-log {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 250px;
+            background-color: rgba(0, 0, 0, 0.7);
+            max-height: 100px;
+            overflow-y: auto;
+            padding: 10px;
+            z-index: 10;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Area Utama Map -->
+        <div class="map-area">
+            <!-- Panel Atas: Logo dan Status -->
+            <div class="top-panel">
+                <div class="logo-area">
+                    <div class="logo">ADVENTURE QUEST</div>
+                </div>
+                <div class="divider"></div>
+                <div class="status-area">
+                    <!-- Health Bar -->
+                    <div class="status-bar">
+                        <div class="status-label">
+                            <span>HP</span>
+                            <span id="health-value">75/100</span>
+                        </div>
+                        <div class="status-progress">
+                            <div class="status-fill health" style="width: 75%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Energy Bar -->
+                    <div class="status-bar">
+                        <div class="status-label">
+                            <span>Energy</span>
+                            <span id="energy-value">60/100</span>
+                        </div>
+                        <div class="status-progress">
+                            <div class="status-fill energy" style="width: 60%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Mana Bar -->
+                    <div class="status-bar">
+                        <div class="status-label">
+                            <span>Mana</span>
+                            <span id="mana-value">80/100</span>
+                        </div>
+                        <div class="status-progress">
+                            <div class="status-fill mana" style="width: 80%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- EXP Bar -->
+                    <div class="status-bar">
+                        <div class="status-label">
+                            <span>EXP</span>
+                            <span id="exp-value">45/100</span>
+                        </div>
+                        <div class="status-progress">
+                            <div class="status-fill exp" style="width: 45%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Money Display -->
+                    <div class="money-display">
+                        <span class="money-icon">💰</span>
+                        <span id="money-value">1250</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Map Game -->
+            <div class="map">
+                <div class="map-grid" id="game-map">
+                    <!-- Map tiles will be generated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Game Log -->
+            <div class="game-log" id="game-log">
+                <div class="log-entry">Selamat datang di Adventure Quest!</div>
+                <div class="log-entry">Gunakan tombol di kanan untuk melakukan aksi.</div>
+                <div class="log-entry">Klik pada peta untuk bergerak.</div>
+            </div>
+        </div>
+        
+        <!-- Panel Kanan dengan Tombol-tombol Aksi -->
+        <div class="action-panel">
+            <button class="action-button explore">🔎 Eksplorasi</button>
+            <button class="action-button attack">⚔ Serang</button>
+            <button class="action-button heal">❤ Pulihkan</button>
+            <button class="action-button">🏃 Lari</button>
+            <button class="action-button inventory">🎒 Inventaris</button>
+            <button class="action-button">🛒 Toko</button>
+            <button class="action-button">🔧 Crafting</button>
+            <button class="action-button">📜 Quest</button>
+            <button class="action-button">🗺 Peta Dunia</button>
+            <button class="action-button">⚙ Pengaturan</button>
+        </div>
+    </div>
+
+    <script>
+        // Inisialisasi variabel game
+        const gameState = {
+            playerPosition: { x: 4, y: 4 },
+            playerStats: {
+                health: 75,
+                maxHealth: 100,
+                energy: 60,
+                maxEnergy: 100,
+                mana: 80,
+                maxMana: 100,
+                exp: 45,
+                maxExp: 100,
+                money: 1250
+            },
+            mapSize: { width: 10, height: 10 }
+        };
+        
+        // Generate peta
+        function generateMap() {
+            const mapElement = document.getElementById('game-map');
+            mapElement.innerHTML = '';
+            
+            // Tipe-tipe tile
+            const tileTypes = ['grass', 'water', 'mountain', 'cave'];
+            
+            // Membuat grid peta
+            for (let y = 0; y < gameState.mapSize.height; y++) {
+                for (let x = 0; x < gameState.mapSize.width; x++) {
+                    const tile = document.createElement('div');
+                    tile.className = 'map-tile';
+                    
+                    // Tetapkan tipe tile secara acak, dengan peluang lebih tinggi untuk rumput
+                    if (x === gameState.playerPosition.x && y === gameState.playerPosition.y) {
+                        tile.classList.add('player');
+                    } else {
+                        const rand = Math.random();
+                        if (rand < 0.6) {
+                            tile.classList.add('grass');
+                        } else if (rand < 0.8) {
+                            tile.classList.add('mountain');
+                        } else if (rand < 0.95) {
+                            tile.classList.add('water');
+                        } else {
+                            tile.classList.add('cave');
+                        }
+                    }
+                    
+                    // Tetapkan koordinat sebagai atribut data-
+                    tile.dataset.x = x;
+                    tile.dataset.y = y;
+                    
+                    // Tambahkan event listener untuk klik tile
+                    tile.addEventListener('click', handleTileClick);
+                    
+                    mapElement.appendChild(tile);
+                }
+            }
+        }
+        
+        // Handle klik pada tile peta
+        function handleTileClick(event) {
+            const x = parseInt(event.target.dataset.x);
+            const y = parseInt(event.target.dataset.y);
+            
+            // Periksa apakah posisi valid untuk bergerak (tidak air dan tidak terlalu jauh)
+            if (!event.target.classList.contains('water')) {
+                const dist = Math.abs(x - gameState.playerPosition.x) + Math.abs(y - gameState.playerPosition.y);
+                
+                if (dist <= 1) {  // Hanya bisa bergerak 1 tile per klik
+                    // Perbarui posisi pemain
+                    gameState.playerPosition.x = x;
+                    gameState.playerPosition.y = y;
+                    
+                    // Perbarui peta
+                    generateMap();
+                    
+                    // Kurangi energi untuk bergerak
+                    updateStats('energy', -5);
+                    
+                    // Log aksi
+                    addLogEntry(Anda bergerak ke koordinat (${x}, ${y}).);
+                    
+                    // Cek jika ada event khusus
+                    checkForEvents(x, y);
+                } else {
+                    addLogEntry("Terlalu jauh untuk bergerak langsung ke sana.");
+                }
+            } else {
+                addLogEntry("Tidak bisa bergerak ke air.");
+            }
+        }
+        
+        // Perbarui status karakter
+        function updateStats(stat, change) {
+            if (gameState.playerStats[stat] + change > gameState.playerStats[max${stat.charAt(0).toUpperCase() + stat.slice(1)}]) {
+                gameState.playerStats[stat] = gameState.playerStats[max${stat.charAt(0).toUpperCase() + stat.slice(1)}];
+            } else if (gameState.playerStats[stat] + change < 0) {
+                gameState.playerStats[stat] = 0;
+            } else {
+                gameState.playerStats[stat] += change;
+            }
+            
+            // Perbarui tampilan status
+            updateStatusDisplay();
+        }
+        
+        // Perbarui tampilan status
+        function updateStatusDisplay() {
+            document.getElementById('health-value').textContent = ${gameState.playerStats.health}/${gameState.playerStats.maxHealth};
+            document.getElementById('energy-value').textContent = ${gameState.playerStats.energy}/${gameState.playerStats.maxEnergy};
+            document.getElementById('mana-value').textContent = ${gameState.playerStats.mana}/${gameState.playerStats.maxMana};
+            document.getElementById('exp-value').textContent = ${gameState.playerStats.exp}/${gameState.playerStats.maxExp};
+            document.getElementById('money-value').textContent = gameState.playerStats.money;
+            
+            // Perbarui persentase bar status
+            document.querySelector('.status-fill.health').style.width = ${(gameState.playerStats.health / gameState.playerStats.maxHealth) * 100}%;
+            document.querySelector('.status-fill.energy').style.width = ${(gameState.playerStats.energy / gameState.playerStats.maxEnergy) * 100}%;
+            document.querySelector('.status-fill.mana').style.width = ${(gameState.playerStats.mana / gameState.playerStats.maxMana) * 100}%;
+            document.querySelector('.status-fill.exp').style.width = ${(gameState.playerStats.exp / gameState.playerStats.maxExp) * 100}%;
+        }
+        
+        // Tambahkan log entri
+        function addLogEntry(message) {
+            const logElement = document.getElementById('game-log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = message;
+            logElement.appendChild(entry);
+            
+            // Auto-scroll ke entri terbaru
+            logElement.scrollTop = logElement.scrollHeight;
+            
+            // Batasi jumlah entri (opsional)
+            if (logElement.children.length > 20) {
+                logElement.removeChild(logElement.children[0]);
+            }
+        }
+        
+        // Cek event spesial di tile
+        function checkForEvents(x, y) {
+            // Logika event sederhana
+            if (Math.random() < 0.2) {
+                // 20% kemungkinan sesuatu terjadi
+                const event = Math.random();
+                
+                if (event < 0.4) {
+                    // Temukan koin
+                    const coins = Math.floor(Math.random() * 20) + 5;
+                    gameState.playerStats.money += coins;
+                    addLogEntry(Anda menemukan ${coins} koin!);
+                    updateStatusDisplay();
+                } else if (event < 0.7) {
+                    // Temukan item (tidak diimplementasikan sepenuhnya)
+                    addLogEntry("Anda menemukan sebuah item.");
+                } else if (event < 0.9) {
+                    // Ambush!
+                    addLogEntry("Anda diserang musuh! Bersiaplah untuk pertempuran!");
+                } else {
+                    // Heal spring
+                    const healAmount = Math.floor(Math.random() * 20) + 5;
+                    updateStats('health', healAmount);
+                    addLogEntry(Anda menemukan mata air penyembuhan. HP +${healAmount}!);
+                }
+            }
+        }
+        
+        // Setup event listener untuk tombol aksi
+        function setupActionButtons() {
+            const buttons = document.querySelectorAll('.action-button');
+            
+            buttons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const action = e.target.textContent.trim().split(' ')[1];
+                    
+                    switch (action) {
+                        case 'Eksplorasi':
+                            if (gameState.playerStats.energy >= 10) {
+                                updateStats('energy', -10);
+                                addLogEntry("Anda menjelajahi area sekitar...");
+                                setTimeout(() => {
+                                    if (Math.random() < 0.7) {
+                                        addLogEntry("Anda menemukan area baru!");
+                                    } else {
+                                        addLogEntry("Tidak ada yang menarik di sekitar sini.");
+                                    }
+                                }, 1000);
+                            } else {
+                                addLogEntry("Energi tidak cukup untuk eksplorasi!");
+                            }
+                            break;
+                            
+                        case 'Serang':
+                            addLogEntry("Tidak ada musuh untuk diserang.");
+                            break;
+                            
+                        case 'Pulihkan':
+                            if (gameState.playerStats.mana >= 15) {
+                                updateStats('mana', -15);
+                                updateStats('health', 20);
+                                addLogEntry("Anda menggunakan sihir penyembuhan. HP +20!");
+                            } else {
+                                addLogEntry("Mana tidak cukup untuk penyembuhan!");
+                            }
+                            break;
+                            
+                        case 'Inventaris':
+                            addLogEntry("Membuka inventaris...");
+                            break;
+                            
+                        default:
+                            addLogEntry(Tombol ${action} ditekan.);
+                    }
+                });
+            });
+        }
+        
+        // Inisialisasi game
+        function initGame() {
+            generateMap();
+            updateStatusDisplay();
+            setupActionButtons();
+        }
+        
+        // Jalankan game saat halaman dimuat
+        window.onload = initGame;
+    </script>
+</body>
+</html>
