@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Papua - Adventure Quest</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #121212;
+            color: #f0f0f0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Layout Utama */
+        .game-container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+        
+        /* Area Peta/Map - Fixed no scrolling */
+        .map-area {
+            flex: 1;
+            background-color: #121212;
+            position: relative;
+            overflow: hidden; /* Prevents scrolling */
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .map {
+            flex: 1;
+            width: 100%;
+            position: relative;
+            overflow: hidden; /* Prevents scrolling */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .map-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            gap: 1px;
+            width: 100%;
+            height: 100%;
+            max-width: calc(100vh - 180px); /* Ensure square grid */
+            max-height: calc(100vh - 180px);
+        }
+        
+        .map-tile {
+            border: 1px solid #2a573a;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            aspect-ratio: 1/1;
+        }
+        
+        .map-tile:hover {
+            filter: brightness(1.2);
+        }
+        
+        /* Warna dan style untuk berbagai jenis terrain */
+        .terrain-water { background-color: #1e90ff; border-color: #4169e1; }
+        .terrain-beach { background-color: #f5deb3; border-color: #d2b48c; }
+        .terrain-forest { background-color: #006400; border-color: #004d00; }
+        .terrain-mountain { background-color: #a0522d; border-color: #8b4513; }
+        .terrain-field { background-color: #9acd32; border-color: #6b8e23; }
+        .terrain-village { background-color: #cd853f; border-color: #8b4513; }
+        
+        /* Character styling */
+        .character-tile {
+            position: relative;
+        }
+        
+        .character-image {
+            position: absolute;
+            width: auto; /* Allow width to adjust based on height */
+            height: 80%; /* Use percentage of tile instead of fixed size */
+            max-width: 80%; /* Prevent image from overflowing tile width */
+            max-height: 80%; /* Prevent image from overflowing tile height */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 10%; /* Reduced from 50% to show more of the character */
+            object-fit: contain; /* Show the entire image without cropping */
+            background-color: rgba(0, 0, 0, 0.2); /* Optional: slight background for visibility */
+            padding: 2px; /* Small padding to prevent edge touching */
+        }
+        
+        /* Item yang bisa dikumpulkan */
+        .has-item {
+            position: relative;
+        }
+
+        .item-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            z-index: 2;
+            filter: drop-shadow(0 0 2px #000);
+            cursor: pointer;
+            animation: pulse 1.5s infinite;
+        }
+
+        .item-icon:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+        
+        /* Panel Kanan - Tombol Aksi */
+        .action-panel {
+            width: 250px;
+            background-color: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            z-index: 10;
+        }
+        
+        .action-button {
+            background-color: #444;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 5px 0;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .action-button.explore {
+            background-color: #008000;
+        }
+        
+        .action-button.attack {
+            background-color: #8b0000;
+        }
+        
+        .action-button.heal {
+            background-color: #4169e1;
+        }
+        
+        .action-button.inventory {
+            background-color: #cd853f;
+        }
+        
+        .action-button.back {
+            background-color: #4682b4;
+            color: white;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        /* Simplified Top Panel - Status Bar */
+        .top-panel {
+            width: 100%;
+            background-color: #121212;
+            padding: 10px;
+            border-bottom: 1px solid #333;
+            z-index: 10;
+            height: 80px;
+        }
+        
+        .logo {
+            font-size: 30px;
+            font-weight: bold;
+            color: #d4af37;
+            text-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
+            letter-spacing: 2px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .location-title {
+            color: #fff;
+            text-align: center;
+            margin-top: -5px;
+            font-size: 18px;
+            opacity: 0.8;
+        }
+        
+        .status-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-right: 20px;
+        }
+        
+        .stat-group {
+            display: flex;
+            align-items: center;
+            margin-right: 20px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            margin-right: 10px;
+            white-space: nowrap;
+        }
+        
+        .stat-bar {
+            width: 100px;
+            height: 12px;
+            background-color: #333;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-right: 15px;
+        }
+        
+        .stat-fill {
+            height: 100%;
+            width: 50%;
+        }
+        
+        .stat-fill.hunger {
+            background-color: #cc0000;
+        }
+        
+        .stat-fill.sleep {
+            background-color: #ffcc00;
+        }
+        
+        .stat-fill.hygiene {
+            background-color: #0066cc;
+        }
+        
+        .stat-fill.happiness {
+            background-color: #00cc66;
+        }
+        
+        .stat-value {
+            font-size: 14px;
+            width: 50px;
+            margin-left: 5px;
+        }
+        
+        .info-display {
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+        }
+        
+        .money-display, .time-display {
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            font-weight: bold;
+            color: #d4af37;
+            margin-left: 15px;
+        }
+        
+        .money-icon, .time-icon {
+            margin-right: 5px;
+        }
+        
+        /* Game log area - Full width */
+        .game-log {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 250px; /* Width of action panel */
+            background-color: rgba(0, 0, 0, 0.8);
+            height: 100px;
+            overflow-y: auto;
+            padding: 10px;
+            z-index: 10;
+            scrollbar-width: thin;
+            scrollbar-color: #444 #222;
+        }
+        
+        .game-log::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .game-log::-webkit-scrollbar-track {
+            background: #222;
+        }
+        
+        .game-log::-webkit-scrollbar-thumb {
+            background-color: #444;
+            border-radius: 3px;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #ccc;
+        }
+        
+        /* Navigation buttons in action panel */
+        .navigation-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 5px;
+            margin-top: 20px;
+        }
+
+        .nav-button {
+            width: 100%;
+            height: 50px;
+            font-size: 24px;
+            background-color: #555;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-button:hover {
+            background-color: #777;
+        }
+
+        .nav-button[data-direction="up"] {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        .nav-button[data-direction="left"] {
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        .nav-button[data-direction="down"] {
+            grid-column: 2;
+            grid-row: 3;
+        }
+
+        .nav-button[data-direction="right"] {
+            grid-column: 3;
+            grid-row: 2;
+        }
+        
+        /* Untuk inventaris */
+        .inventory-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 600px;
+            background-color: rgba(0, 0, 0, 0.9);
+            border: 2px solid #d4af37;
+            border-radius: 10px;
+            padding: 20px;
+            z-index: 100;
+            display: none;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .inventory-panel h2 {
+            color: #d4af37;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .inventory-item {
+            background-color: #222;
+            border: 1px solid #444;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .inventory-item-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .inventory-item-name {
+            font-size: 12px;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .inventory-item-value {
+            font-size: 10px;
+            color: #d4af37;
+        }
+
+        .close-inventory {
+            background-color: #444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+            cursor: pointer;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .close-inventory:hover {
+            background-color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Area Utama Map -->
+        <div class="map-area">
+            <!-- Panel Atas: Logo dan Status -->
+            <div class="top-panel">
+                <div class="logo">ADVENTURE QUEST</div>
+                <div class="location-title">PAPUA</div>
+                <div class="status-area">
+                    <!-- Health Bar (Now Hunger) -->
+                    <div class="stat-group">
+                        <div class="stat-label">Hunger</div>
+                        <div class="stat-bar">
+                            <div class="stat-fill hunger" style="width: 50%"></div>
+                        </div>
+                        <div class="stat-value" id="hunger-value">50/100</div>
+                    </div>
+                    
+                    <!-- Energy Bar (Now Sleep) -->
+                    <div class="stat-group">
+                        <div class="stat-label">Sleep</div>
+                        <div class="stat-bar">
+                            <div class="stat-fill sleep" style="width: 0%"></div>
+                        </div>
+                        <div class="stat-value" id="sleep-value">0/100</div>
+                    </div>
+                    
+                    <!-- Mana Bar (Now Hygiene) -->
+                    <div class="stat-group">
+                        <div class="stat-label">Hygiene</div>
+                        <div class="stat-bar">
+                            <div class="stat-fill hygiene" style="width: 50%"></div>
+                        </div>
+                        <div class="stat-value" id="hygiene-value">50/100</div>
+                    </div>
+                    
+                    <!-- EXP Bar (Now Happiness) -->
+                    <div class="stat-group">
+                        <div class="stat-label">Happiness</div>
+                        <div class="stat-bar">
+                            <div class="stat-fill happiness" style="width: 50%"></div>
+                        </div>
+                        <div class="stat-value" id="happiness-value">50/100</div>
+                    </div>
+                    
+                    <!-- Info display area -->
+                    <div class="info-display">
+                        <!-- Money Display -->
+                        <div class="money-display">
+                            <span class="money-icon">💰</span>
+                            <span id="money-value">1260</span>
+                        </div>
+                        
+                        <!-- Game Time Display -->
+                        <div class="time-display">
+                            <span class="time-icon">🕒</span>
+                            <span id="game-time">00:39</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Map Game -->
+            <div class="map">
+                <div class="map-grid" id="game-map">
+                    <!-- Map tiles will be generated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Game Log -->
+            <div class="game-log" id="game-log">
+                <div class="log-entry">[00:39] Anda memasuki PAPUA.</div>
+                <div class="log-entry">[00:39] Jelajahi dan temukan barang berharga!</div>
+            </div>
+        </div>
+        
+        <!-- Panel Kanan dengan Tombol-tombol Aksi -->
+        <div class="action-panel">
+            <!-- Tombol Kembali ke Peta Dunia -->
+            <button class="action-button back" id="back-to-world">🗺️ Kembali ke Peta Dunia</button>
+            
+            <!-- Tombol Aksi yang Sudah Ada -->
+            <button class="action-button explore">🔎 Eksplorasi</button>
+            <button class="action-button attack">⚔ Serang</button>
+            <button class="action-button heal">❤ Pulihkan</button>
+            <button class="action-button">🏃 Lari</button>
+            <button class="action-button inventory">🎒 Inventaris</button>
+            <button class="action-button">🛒 Toko</button>
+            <button class="action-button">🔧 Crafting</button>
+            <button class="action-button">📜 Quest</button>
+            
+            <!-- Tombol Navigasi di panel kanan -->
+            <div class="navigation-buttons">
+                <button class="nav-button" data-direction="up">⬆</button>
+                <button class="nav-button" data-direction="left">⬅</button>
+                <button class="nav-button" data-direction="down">⬇</button>
+                <button class="nav-button" data-direction="right">➡</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Panel Inventaris -->
+    <div id="inventory-panel" class="inventory-panel">
+        <h2>Inventaris</h2>
+        <div id="inventory-grid" class="inventory-grid"></div>
+        <button class="close-inventory" onclick="toggleInventory(false)">Tutup</button>
+    </div>
+
+    <script>
+        // Inisialisasi variabel game dari localStorage
+        let gameState = {};
+        
+        // Item untuk dikumpulkan di Papua
+        const papuaItems = [
+            { id: 'papua_food', name: 'Papeda', x: 2, y: 2, value: 35, icon: '🍲', collected: false },
+            { id: 'papua_weapon', name: 'Panah Tradisional', x: 5, y: 5, value: 120, icon: '🏹', collected: false },
+            { id: 'papua_artifact', name: 'Ukiran Asmat', x: 6, y: 7, value: 250, icon: '🪵', collected: false },
+            { id: 'papua_clothing', name: 'Noken', x: 1, y: 4, value: 80, icon: '👜', collected: false },
+            { id: 'papua_jewelry', name: 'Perhiasan Kulit Kerang', x: 7, y: 1, value: 180, icon: '💍', collected: false }
+        ];
+        
+        // Peta template Papua
+        const papuaMapTemplate = [
+            ['water', 'water', 'beach', 'forest', 'forest', 'mountain', 'mountain', 'mountain'],
+            ['water', 'beach', 'forest', 'forest', 'forest', 'forest', 'mountain', 'mountain'],
+            ['beach', 'forest', 'forest', 'village', 'forest', 'forest', 'forest', 'mountain'],
+            ['forest', 'forest', 'village', 'field', 'field', 'forest', 'forest', 'forest'],
+            ['forest', 'field', 'field', 'field', 'field', 'field', 'forest', 'forest'],
+            ['mountain', 'forest', 'field', 'village', 'field', 'forest', 'forest', 'mountain'],
+            ['mountain', 'mountain', 'forest', 'forest', 'forest', 'forest', 'mountain', 'mountain'],
+            ['mountain', 'mountain', 'mountain', 'mountain', 'mountain', 'mountain', 'mountain', 'mountain']
+        ];
+        
+        // Memuat data game dari localStorage
+        function loadGameState() {
+            const savedState = localStorage.getItem('gameState');
+            if (savedState) {
+                gameState = JSON.parse(savedState);
+            } else {
+                // Jika tidak ada data tersimpan, inisialisasi dengan default
+                gameState = {
+                    playerPosition: { x: 3, y: 6 }, // Posisi awal di Papua
+                    playerStats: {
+                        hunger: 50,
+                        maxHunger: 100,
+                        sleep: 0,
+                        maxSleep: 100,
+                        hygiene: 50,
+                        maxHygiene: 100,
+                        happiness: 50,
+                        maxHappiness: 100,
+                        money: 1260
+                    },
+                    mapSize: { width: 8, height: 8 },
+                    gameTime: { hours: 0, minutes: 39 },
+                    selectedCharacter: "Revlog",
+                    inventory: [],
+                    collectedItems: {}
+                };
+            }
+            
+            // Set karakter dari localStorage jika ada
+            const selectedChar = localStorage.getItem('selectedCharacter');
+            if (selectedChar) {
+                gameState.selectedCharacter = selectedChar;
+            }
+            
+            // Sesuaikan format karakter untuk tampilan gambar
+            gameState.selectedCharacter = gameState.selectedCharacter.charAt(0).toUpperCase() + 
+                                         gameState.selectedCharacter.slice(1).toLowerCase();
+        }
+        
+        // Menyimpan data game ke localStorage
+        function saveGameState() {
+            localStorage.setItem('gameState', JSON.stringify(gameState));
+        }
+        
+        // Game time update function (1 second real time = 1 minute game time)
+        function startGameTime() {
+            setInterval(() => {
+                // Increment minutes
+                gameState.gameTime.minutes++;
+                
+                // Handle hour change
+                if (gameState.gameTime.minutes >= 60) {
+                    gameState.gameTime.hours++;
+                    gameState.gameTime.minutes = 0;
+                }
+                
+                // Handle day change (24-hour cycle)
+                if (gameState.gameTime.hours >= 24) {
+                    gameState.gameTime.hours = 0;
+                }
+                
+                // Update time display
+                updateTimeDisplay();
+                
+                // Update stats based on time
+                // Every hour, reduce hunger and energy slightly
+                if (gameState.gameTime.minutes === 0) {
+                    updateStats('hunger', -2);
+                    updateStats('sleep', -3);
+                }
+                
+                // Simpan game state setiap 5 menit
+                if (gameState.gameTime.minutes % 5 === 0) {
+                    saveGameState();
+                }
+            }, 1000); // Update every second
+        }
+        
+        // Update time display
+        function updateTimeDisplay() {
+            const hours = String(gameState.gameTime.hours).padStart(2, '0');
+            const minutes = String(gameState.gameTime.minutes).padStart(2, '0');
+            document.getElementById('game-time').textContent = `${hours}:${minutes}`;
+        }
+        
+        // Move player function
+        function movePlayer(direction) {
+            let newX = gameState.playerPosition.x;
+            let newY = gameState.playerPosition.y;
+
+            switch (direction) {
+                case 'up':
+                    newY = Math.max(0, newY - 1);
+                    break;
+                case 'down':
+                    newY = Math.min(gameState.mapSize.height - 1, newY + 1);
+                    break;
+                case 'left':
+                    newX = Math.max(0, newX - 1);
+                    break;
+                case 'right':
+                    newX = Math.min(gameState.mapSize.width - 1, newX + 1);
+                    break;
+            }
+
+            // If position didn't change, do nothing
+            if (newX === gameState.playerPosition.x && newY === gameState.playerPosition.y) {
+                return;
+            }
+            
+            // Remove character from previous tile
+            const prevTile = document.querySelector('.character-tile');
+            if (prevTile) {
+                prevTile.classList.remove('character-tile');
+                const charImg = prevTile.querySelector('.character-image');
+                if (charImg) charImg.remove();
+            }
+            
+            // Update player position
+            gameState.playerPosition.x = newX;
+            gameState.playerPosition.y = newY;
+            
+            // Add character to new tile
+            const newTile = document.querySelector(`.map-tile[data-x="${newX}"][data-y="${newY}"]`);
+            if (newTile) {
+                newTile.classList.add('character-tile');
+                const charImg = document.createElement('img');
+                charImg.className = 'character-image';
+                charImg.src = `Character/${gameState.selectedCharacter}.png`;
+                newTile.appendChild(charImg);
+            }
+            
+            // Update stats
+            updateStats('sleep', -5);
+            
+            // Add log entry
+            addLogEntry(`Anda bergerak ke koordinat (${newX}, ${newY}).`);
+            
+            // Check for items or events
+            checkForItems(newX, newY);
+            
+            // Save game state
+            saveGameState();
+        }
+
+        // Generate map dengan template peta Papua
+        function generateMap() {
+            const mapElement = document.getElementById('game-map');
+            mapElement.innerHTML = '';
+            
+            // Create map tiles based on template
+            for (let y = 0; y < gameState.mapSize.height; y++) {
+                for (let x = 0; x < gameState.mapSize.width; x++) {
+                    const tile = document.createElement('div');
+                    
+                    // Get terrain type from template
+                    const terrainType = papuaMapTemplate[y][x];
+                    
+                    tile.className = `map-tile terrain-${terrainType}`;
+                    
+                    // Set coordinates as data attributes
+                    tile.dataset.x = x;
+                    tile.dataset.y = y;
+                    
+                    // Check if there's a collectible item here
+                    const item = papuaItems.find(item => item.x === x && item.y === y);
+                    
+                    // Check if item has already been collected
+                    const isCollected = gameState.collectedItems && 
+                                      gameState.collectedItems[`papua_${x}_${y}`];
+                    
+                    if (item && !isCollected) {
+                        const itemIcon = document.createElement('div');
+                        itemIcon.className = 'item-icon';
+                        itemIcon.textContent = item.icon;
+                        itemIcon.dataset.itemId = item.id;
+                        itemIcon.dataset.tooltip = item.name;
+                        tile.appendChild(itemIcon);
+                        tile.classList.add('has-item');
+                    }
+                    
+                    // Add event listener for tile click
+                    tile.addEventListener('click', handleTileClick);
+                    
+                    mapElement.appendChild(tile);
+                    
+                    // If this is the player's position, add the character
+                    if (x === gameState.playerPosition.x && y === gameState.playerPosition.y) {
+                        tile.classList.add('character-tile');
+                        const charImg = document.createElement('img');
+                        charImg.className = 'character-image';
+                        charImg.src = `Character/${gameState.selectedCharacter}.png`;
+                        tile.appendChild(charImg);
+                    }
+                }
+            }
+        }
+        
+        // Handle tile click for movement
+        function handleTileClick(event) {
+            let target = event.target;
+            
+            // If clicked on character or item, get the parent tile
+            if (target.classList.contains('character-image') || target.classList.contains('item-icon')) {
+                target = target.parentElement;
+            }
+            
+            const x = parseInt(target.dataset.x);
+            const y = parseInt(target.dataset.y);
+            
+            // Calculate Manhattan distance to check if move is valid
+            const dist = Math.abs(x - gameState.playerPosition.x) + Math.abs(y - gameState.playerPosition.y);
+            
+            if (dist <= 1) {  // Only allow moving 1 tile per click
+                // Remove character class from previous tile
+                const prevTile = document.querySelector('.character-tile');
+                if (prevTile) {
+                    prevTile.classList.remove('character-tile');
+                    const charImg = prevTile.querySelector('.character-image');
+                    if (charImg) charImg.remove();
+                }
+                
+                // Update player position
+                gameState.playerPosition.x = x;
+                gameState.playerPosition.y = y;
+                
+                // Add character to new tile
+                target.classList.add('character-tile');
+                const charImg = document.createElement('img');
+                charImg.className = 'character-image';
+                charImg.src = `Character/${gameState.selectedCharacter}.png`;
+                target.appendChild(charImg);
+                
+                // Reduce energy for movement
+                updateStats('sleep', -5);
+                
+                // Log action
+                addLogEntry(`Anda bergerak ke koordinat (${x}, ${y}).`);
+                
+                // Check for items or events
+                checkForItems(x, y);
+                
+                // Save state
+                saveGameState();
+            } else {
+                addLogEntry("Terlalu jauh untuk bergerak langsung ke sana.");
+            }
+        }
+        
+        // Check for collectible items
+        function checkForItems(x, y) {
+            // Check for collectible item
+            const item = papuaItems.find(item => item.x === x && item.y === y);
+            
+            // Check if item has already been collected
+            const isCollected = gameState.collectedItems && 
+                              gameState.collectedItems[`papua_${x}_${y}`];
+            
+            if (item && !isCollected) {
+                // Collect the item
+                if (!gameState.collectedItems) {
+                    gameState.collectedItems = {};
+                }
+                gameState.collectedItems[`papua_${x}_${y}`] = true;
+                
+                // Add to inventory
+                if (!gameState.inventory) {
+                    gameState.inventory = [];
+                }
+                gameState.inventory.push({
+                    id: item.id,
+                    name: item.name,
+                    icon: item.icon,
+                    value: item.value,
+                    location: 'PAPUA'
+                });
+                
+                // Add money
+                gameState.playerStats.money += item.value;
+                
+                // Add log entry
+                addLogEntry(`Anda menemukan ${item.name}! (${item.icon}) Nilai: ${item.value} koin.`);
+                
+                // Update display
+                updateStatusDisplay();
+                
+                // Remove item from tile
+                const tile = document.querySelector(`.map-tile[data-x="${x}"][data-y="${y}"]`);
+                const itemIcon = tile.querySelector('.item-icon');
+                if (itemIcon) {
+                    itemIcon.remove();
+                    tile.classList.remove('has-item');
+                }
+                
+                // Add happiness for finding an item
+                updateStats('happiness', 10);
+                
+                // Save state
+                saveGameState();
+            } else if (Math.random() < 0.1) {
+                // Random event (10% chance)
+                const event = Math.random();
+                if (event < 0.5) {
+                    const coins = Math.floor(Math.random() * 10) + 2;
+                    gameState.playerStats.money += coins;
+                    addLogEntry(`Anda menemukan ${coins} koin tersembunyi!`);
+                    updateStatusDisplay();
+                } else {
+                    const healAmount = Math.floor(Math.random() * 10) + 2;
+                    updateStats('hunger', healAmount);
+                    addLogEntry(`Anda menemukan buah-buahan liar. Hunger +${healAmount}!`);
+                }
+            }
+        }
+        
+        // Update character stats
+        function updateStats(stat, change) {
+            if (gameState.playerStats[stat] + change > gameState.playerStats[`max${stat.charAt(0).toUpperCase() + stat.slice(1)}`]) {
+                gameState.playerStats[stat] = gameState.playerStats[`max${stat.charAt(0).toUpperCase() + stat.slice(1)}`];
+            } else if (gameState.playerStats[stat] + change < 0) {
+                gameState.playerStats[stat] = 0;
+            } else {
+                gameState.playerStats[stat] += change;
+            }
+            
+            // Update status display
+            updateStatusDisplay();
+            
+            // Save state
+            saveGameState();
+        }
+        
+        // Update status display
+        function updateStatusDisplay() {
+            document.getElementById('hunger-value').textContent = `${gameState.playerStats.hunger}/${gameState.playerStats.maxHunger}`;
+            document.getElementById('sleep-value').textContent = `${gameState.playerStats.sleep}/${gameState.playerStats.maxSleep}`;
+            document.getElementById('hygiene-value').textContent = `${gameState.playerStats.hygiene}/${gameState.playerStats.maxHygiene}`;
+            document.getElementById('happiness-value').textContent = `${gameState.playerStats.happiness}/${gameState.playerStats.maxHappiness}`;
+            document.getElementById('money-value').textContent = gameState.playerStats.money;
+            
+            // Update status bar percentages
+            document.querySelector('.stat-fill.hunger').style.width = `${(gameState.playerStats.hunger / gameState.playerStats.maxHunger) * 100}%`;
+            document.querySelector('.stat-fill.sleep').style.width = `${(gameState.playerStats.sleep / gameState.playerStats.maxSleep) * 100}%`;
+            document.querySelector('.stat-fill.hygiene').style.width = `${(gameState.playerStats.hygiene / gameState.playerStats.maxHygiene) * 100}%`;
+            document.querySelector('.stat-fill.happiness').style.width = `${(gameState.playerStats.happiness / gameState.playerStats.maxHappiness) * 100}%`;
+        }
+        
+        // Add log entry
+        function addLogEntry(message) {
+            const logElement = document.getElementById('game-log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            
+            // Add timestamp to log entries
+            const hours = String(gameState.gameTime.hours).padStart(2, '0');
+            const minutes = String(gameState.gameTime.minutes).padStart(2, '0');
+            entry.textContent = `[${hours}:${minutes}] ${message}`;
+            
+            logElement.appendChild(entry);
+            
+            // Auto-scroll to latest entry
+            logElement.scrollTop = logElement.scrollHeight;
+            
+            // Limit number of entries (optional)
+            if (logElement.children.length > 20) {
+                logElement.removeChild(logElement.children[0]);
+            }
+        }
+        
+        // Fungsi inventaris
+        function createInventoryPanel() {
+            // Already created in HTML
+            updateInventoryDisplay();
+        }
+
+        function toggleInventory(show) {
+            const panel = document.getElementById('inventory-panel');
+            panel.style.display = show ? 'block' : 'none';
+            if (show) {
+                updateInventoryDisplay();
+            }
+        }
+
+        function updateInventoryDisplay() {
+            const grid = document.getElementById('inventory-grid');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            
+            if (!gameState.inventory || gameState.inventory.length === 0) {
+                grid.innerHTML = '<p style="grid-column: span 4; text-align: center; color: #aaa;">Inventaris kosong. Jelajahi lokasi untuk menemukan barang!</p>';
+                return;
+            }
+            
+            gameState.inventory.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'inventory-item';
+                itemElement.innerHTML = `
+                    <div class="inventory-item-icon">${item.icon}</div>
+                    <div class="inventory-item-name">${item.name}</div>
+                    <div class="inventory-item-value">${item.value} koin</div>
+                `;
+                
+                // Tambahkan tooltip atau detail saat di-klik
+                itemElement.addEventListener('click', () => {
+                    alert(`${item.name}\nNilai: ${item.value} koin\nDitemukan di: ${item.location || 'Papua'}`);
+                });
+                
+                grid.appendChild(itemElement);
+            });
+        }
+        
+        // Eksplorasi
+        function exploreLocation() {
+            if (gameState.playerStats.sleep >= 10) {
+                updateStats('sleep', -10);
+                addLogEntry("Anda menjelajahi area sekitar...");
+                
+                setTimeout(() => {
+                    // Cari item yang belum dikumpulkan
+                    const uncollectedItems = papuaItems.filter(item => {
+                        return !gameState.collectedItems || !gameState.collectedItems[`papua_${item.x}_${item.y}`];
+                    });
+                    
+                    if (uncollectedItems.length > 0 && Math.random() < 0.3) {
+                        // Berikan petunjuk tentang item terdekat
+                        const playerPos = gameState.playerPosition;
+                        const nearestItem = uncollectedItems.reduce((nearest, item) => {
+                            const distCurrent = Math.abs(playerPos.x - item.x) + Math.abs(playerPos.y - item.y);
+                            const distNearest = Math.abs(playerPos.x - nearest.x) + Math.abs(playerPos.y - nearest.y);
+                            return distCurrent < distNearest ? item : nearest;
+                        });
+                        
+                        const distance = Math.abs(playerPos.x - nearestItem.x) + Math.abs(playerPos.y - nearestItem.y);
+                        
+                        if (distance <= 2) {
+                            addLogEntry("Anda merasa ada sesuatu yang menarik di dekat sini...");
+                        } else if (distance <= 4) {
+                            addLogEntry("Anda merasakan ada barang berharga di sekitar area ini.");
+                        } else {
+                            addLogEntry("Ada sesuatu yang menarik di tempat ini, tapi tidak di dekat Anda.");
+                        }
+                    } else if (Math.random() < 0.5) {
+                        addLogEntry("Tidak ada yang menarik di sekitar sini.");
+                    } else {
+                        // Random efek eksplorasi
+                        const effect = Math.random();
+                        if (effect < 0.3) {
+                            const coins = Math.floor(Math.random() * 10) + 2;
+                            gameState.playerStats.money += coins;
+                            addLogEntry(`Anda menemukan ${coins} koin!`);
+                            updateStatusDisplay();
+                        } else if (effect < 0.6) {
+                            addLogEntry("Anda menemukan rute baru yang menarik.");
+                        } else {
+                            addLogEntry("Anda menikmati pemandangan indah di sekitar Papua.");
+                            updateStats('happiness', 5);
+                        }
+                    }
+                }, 1000);
+            } else {
+                addLogEntry("Sleep tidak cukup untuk eksplorasi!");
+            }
+        }
+        
+        // Event listeners for keyboard
+        document.addEventListener('keydown', (event) => {
+            switch (event.key) {
+                case 'ArrowUp':
+                    movePlayer('up');
+                    break;
+                case 'ArrowDown':
+                    movePlayer('down');
+                    break;
+                case 'ArrowLeft':
+                    movePlayer('left');
+                    break;
+                case 'ArrowRight':
+                    movePlayer('right');
+                    break;
+                case 'i':
+                case 'I':
+                    toggleInventory(true);
+                    break;
+                case 'Escape':
+                    toggleInventory(false);
+                    break;
+            }
+        });
+        
+        // Setup tombol kembali ke peta dunia
+        document.getElementById('back-to-world').addEventListener('click', () => {
+            // Simpan posisi player dan status saat ini
+            saveGameState();
+            
+            // Redirect ke peta utama
+            window.location.href = 'MainGame.html';
+        });
+        
+        // Initialize game
+        function initGame() {
+            // Load game state
+            loadGameState();
+            
+            // Generate map
+            generateMap();
+            
+            // Update display
+            updateStatusDisplay();
+            updateTimeDisplay();
+            
+            // Start game time
+            startGameTime();
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Add initial log entry
+            addLogEntry(`Anda memasuki PAPUA dengan karakter ${gameState.selectedCharacter}.`);
+            addLogEntry("Jelajahi dan temukan barang berharga!");
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Navigation buttons
+            document.querySelectorAll('.nav-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const direction = button.getAttribute('data-direction');
+                    movePlayer(direction);
+                });
+            });
+            
+            // Action buttons
+            document.querySelector('.action-button.explore').addEventListener('click', exploreLocation);
+            
+            document.querySelector('.action-button.inventory').addEventListener('click', () => {
+                toggleInventory(true);
+            });
+            
+            document.querySelector('.action-button.attack').addEventListener('click', () => {
+                addLogEntry("Tidak ada musuh untuk diserang.");
+            });
+            
+            document.querySelector('.action-button.heal').addEventListener('click', () => {
+                if (gameState.playerStats.hygiene >= 15) {
+                    updateStats('hygiene', -15);
+                    updateStats('hunger', 20);
+                    addLogEntry("Anda menggunakan sihir penyembuhan. Hunger +20!");
+                } else {
+                    addLogEntry("Hygiene tidak cukup untuk penyembuhan!");
+                }
+            });
+            
+            // Tombol tutup inventaris
+            document.querySelector('.close-inventory').addEventListener('click', () => {
+                toggleInventory(false);
+            });
+        }
+        
+        // Run game when page loads
+        window.onload = initGame;
+    </script>
+</body>
+</html>

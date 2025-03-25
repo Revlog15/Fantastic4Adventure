@@ -181,10 +181,11 @@
             
             <div>
                 <div class="character-container">
-                    <img src="Character/Revlog.png" class="character character1 active">
-                    <img src="Character/Robert.png" alt="Character 2" class="character character2">
-                    <img src="Character/Sam.png" alt="Character 3" class="character character3">
-                    <img src="Character/Dimsum.png" alt="Character 4" class="character character4">
+                    <img src="Character/Revlog.png" class=" character character1 active" alt="Revlog">
+                    <img src="Character/Robert.png" class="character character2" alt="Robert">
+                    <img src="Character/Sam.png" class="character character3" alt="Sam">
+                    <img src="Character/Dimsum.png" class="character character4" alt="Dimsum">
+
                 </div>
                 <div class="character-name" id="characterName">REVLOG</div>
             </div>
@@ -232,11 +233,12 @@
         }
         
         function startGame() {
-            const selectedCharacter = characters[currentCharacter].name;
-            localStorage.setItem('selectedCharacter', selectedCharacter);
-            // Redirect to game page with the selected character
-            window.location.href = `MainGame.html?character=${selectedCharacter.toLowerCase()}`;
-        }
+    const selectedCharacter = characters[currentCharacter].name;
+    localStorage.setItem('selectedCharacter', selectedCharacter);
+    // Redirect to game page with the selected character
+    window.location.href = `MainGame.html?character=${selectedCharacter.toLowerCase()}`;
+}
+        
     </script>
 </body>
 </html>
