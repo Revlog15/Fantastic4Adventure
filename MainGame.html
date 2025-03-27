@@ -279,17 +279,26 @@
             justify-content: center;
             text-align: center;
         }
-        
-        .action-button.explore {
-            background-color: #008000;
+
+     .action-button.location-specific {
+            background-color: #5a3d2b;
+            display: none; /* Hidden by default */
         }
         
-        .action-button.attack {
-            background-color: #8b0000;
+        .action-button.home-eat {
+            background-color: #8b4513;
         }
         
-        .action-button.heal {
-            background-color: #4169e1;
+        .action-button.home-bath {
+            background-color: #1e90ff;
+        }
+        
+        .action-button.home-sleep {
+            background-color: #483d8b;
+        }
+        
+        .action-button.home-work {
+            background-color: #556b2f;
         }
         
         .action-button.inventory {
@@ -380,7 +389,7 @@
         .money-display, .time-display {
             display: flex;
             align-items: center;
-            padding: 0 10px;
+            
             font-weight: bold;
             color: #d4af37;
             margin-left: 15px;
@@ -391,20 +400,21 @@
         }
         
         /* Game log area - Full width */
-        .game-log {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 250px; /* Width of action panel */
-            background-color: rgba(0, 0, 0, 0.8);
-            height: 100px;
-            overflow-y: auto;
-            padding: 10px;
-            z-index: 10;
-            scrollbar-width: thin;
-            scrollbar-color: #444 #222;
-        }
-        
+     .game-log {
+    width: 250px; /* Fixed width */
+    height: calc(100vh - 80px); /* Full height minus top panel */
+    background-color: rgba(0, 0, 0, 0.8);
+    border-right: 1px solid #333;
+    overflow-y: auto;
+    padding: 15px;
+    position: fixed;
+    left: 0;
+    top: 80px; /* Below top panel */
+    z-index: 10;
+    display: flex;
+   gap: 12px;
+    flex-direction: column;
+}
         .game-log::-webkit-scrollbar {
             width: 6px;
         }
@@ -473,6 +483,12 @@
 </head>
 <body>
     <div class="game-container">
+        <div class="game-log" id="game-log">
+            <div class="log-entry">[00:22] Anda menemukan 10 koin!</div>
+            <div class="log-entry">[00:23] Anda bergerak ke koordinat (6, 2).</div>
+            <div class="log-entry">[00:25] Anda bergerak ke koordinat (5, 2).</div>
+            <div class="log-entry">[00:25] Anda bergerak ke koordinat (4, 2).</div>
+        </div>
         <!-- Area Utama Map -->
         <div class="map-area">
             <!-- Panel Atas: Logo dan Status -->
@@ -540,27 +556,18 @@
             </div>
             
             <!-- Game Log -->
-            <div class="game-log" id="game-log">
-                <div class="log-entry">[00:22] Anda menemukan 10 koin!</div>
-                <div class="log-entry">[00:23] Anda bergerak ke koordinat (6, 2).</div>
-                <div class="log-entry">[00:25] Anda bergerak ke koordinat (5, 2).</div>
-                <div class="log-entry">[00:25] Anda bergerak ke koordinat (4, 2).</div>
-            </div>
+          
         </div>
         
         <!-- Panel Kanan dengan Tombol-tombol Aksi -->
         <div class="action-panel">
-            <!-- Tombol Aksi yang Sudah Ada -->
-            <button class="action-button explore">🔎 Eksplorasi</button>
-            <button class="action-button attack">⚔ Serang</button>
-            <button class="action-button heal">❤ Pulihkan</button>
-            <button class="action-button">🏃 Lari</button>
+            <button class="action-button location-specific explore">🔎 Eksplorasi</button>
+            <button class="action-button location-specific home-eat">🍲 Makan</button>
+            <button class="action-button location-specific home-bath">🚿 Mandi</button>
+            <button class="action-button location-specific home-sleep">🛌 Tidur</button>
+            <button class="action-button location-specific home-work">💼 Bekerja</button>
             <button class="action-button inventory">🎒 Inventaris</button>
-            <button class="action-button">🛒 Toko</button>
-            <button class="action-button">🔧 Crafting</button>
-            <button class="action-button">📜 Quest</button>
-            <button class="action-button">🗺 Peta Dunia</button>
-            <button class="action-button">⚙ Pengaturan</button>
+
             
             <!-- Tombol Navigasi di panel kanan -->
             <div class="navigation-buttons">
@@ -681,6 +688,8 @@ function movePlayer(direction) {
         newTile.appendChild(charImg);
     }
     
+    // Update location-specific buttons
+    updateLocationButtons(newX, newY);
     
     // Add log entry
     addLogEntry(`Anda bergerak ke koordinat (${newX}, ${newY}).`);
@@ -688,6 +697,37 @@ function movePlayer(direction) {
     // Check for events
     checkForEvents(newX, newY);
 }
+
+function updateLocationButtons(x, y) {
+    // Hide all location-specific buttons first
+    document.querySelectorAll('.action-button.location-specific').forEach(btn => {
+        btn.style.display = 'none';
+    });
+    
+    // Check if player is at a special location
+    const specialLocations = [
+        { name: 'home', x: 1, y: 1 },
+        { name: 'jakarta', x: 6, y: 1 },
+        { name: 'padang', x: 1, y: 6 },
+        { name: 'magelang', x: 6, y: 6 },
+        { name: 'papua', x: 3, y: 3 }
+    ];
+    
+    const currentLocation = specialLocations.find(loc => loc.x === x && loc.y === y);
+    
+    if (currentLocation) {
+        if (currentLocation.name === 'home') {
+            // Show home-specific buttons
+            document.querySelectorAll('.action-button.home-eat, .action-button.home-bath, .action-button.home-sleep, .action-button.home-work').forEach(btn => {
+                btn.style.display = 'block';
+            });
+        } else {
+            // Show explore button for other locations
+            document.querySelector('.action-button.location-specific.explore').style.display = 'block';
+        }
+    }
+}
+
 
 // Generate map with special locations
 function generateMap() {
@@ -851,29 +891,20 @@ function checkForEvents(x, y) {
         { name: 'PAPUA', x: 3, y: 3, file: 'Papua.html' }
     ];
 
+    
+    const locationMessages = {
+        'HOME': '🏠 Home sweet home! Gunakan tombol aksi untuk makan, mandi, atau tidur.',
+        'JAKARTA': '🏙️ Selamat datang di Jakarta! Jelajahi Monas dan keramaian kota.',
+        'PADANG': '🌋 Masuki tanah Minang! Jangan lupa cicipi rendangnya.',
+        'MAGELANG': '🛕 Anda dekat dengan Candi Borobudur. Ambil foto yang epik!',
+        'PAPUA': '🌴 Datanglah ke Honai! Nikmati alam Papua yang mempesona.'
+    };
+
     const specialLocation = specialLocations.find(loc => loc.x === x && loc.y === y);
     if (specialLocation) {
-        addLogEntry(`Anda tiba di ${specialLocation.name}.`);
-        
-        // Tanyakan jika ingin menjelajahi lokasi ini
-        setTimeout(() => {
-            if (confirm(`Anda telah tiba di ${specialLocation.name}. Ingin menjelajahi lebih lanjut?`)) {
-                // Simpan posisi dan status pemain saat ini
-                saveGameState();
-                
-                // Pindah ke halaman lokasi
-                window.location.href = specialLocation.file;
-            }
-        }, 100);
-        
-        // Efek lain sesuai lokasi
-        switch (specialLocation.name) {
-            case 'HOME':
-                updateStats('hunger', 20);
-                updateStats('sleep', 20);
-                break;
-            // Tambahkan efek khusus untuk lokasi lain jika diperlukan
-        }
+        // Gunakan pesan custom jika ada, jika tidak pakai pesan default
+        const customMessage = locationMessages[specialLocation.name] || `Anda tiba di ${specialLocation.name}.`;
+        addLogEntry(customMessage);
         
         // Time-specific events
         const hour = gameState.gameTime.hours;
@@ -1102,7 +1133,58 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Fungsi untuk setup action buttons lainnya
 function setupActionButtons() {
-    // Attack button
+    // Home actions
+    const eatButton = document.querySelector('.action-button.home-eat');
+    if (eatButton) {
+        eatButton.addEventListener('click', function() {
+            if (gameState.playerStats.money >= 20) {
+                gameState.playerStats.money -= 20;
+                updateStats('hunger', 35);
+                addLogEntry("Anda makan makanan lezat. Hunger +35 (Biaya: 20 koin)");
+            } else {
+                addLogEntry("Uang tidak cukup untuk membeli makanan! (Biaya Makanan: 20 koin)");
+            }
+        });
+    }
+    
+    const bathButton = document.querySelector('.action-button.home-bath');
+    if (bathButton) {
+        bathButton.addEventListener('click', function() {
+            updateStats('hygiene', 100);
+            addLogEntry("Anda mandi dan merasa segar.");
+        });
+    }
+    
+    const sleepButton = document.querySelector('.action-button.home-sleep');
+    if (sleepButton) {
+        sleepButton.addEventListener('click', function() {
+            updateStats('sleep', 100);
+            addLogEntry("Anda tidur nyenyak.");
+        });
+    }
+    
+    const workButton = document.querySelector('.action-button.home-work');
+    if (workButton) {
+        workButton.addEventListener('click', function() {
+            if (gameState.playerStats.sleep >= 20 && gameState.playerStats.hunger >= 20) {
+                const earnings = Math.floor(Math.random() * 100) + 50;
+                gameState.playerStats.money += earnings;
+                updateStats('sleep', -20);
+                updateStats('hunger', -20);
+                addLogEntry(`Anda bekerja dan mendapatkan ${earnings} koin! (Sleep -20, Hunger -20)`);
+            } else {
+                addLogEntry("Anda terlalu lelah atau lapar untuk bekerja!");
+            }
+        });
+    }
+    
+    // Explore button for other locations
+    const exploreButton = document.querySelector('.action-button.location-specific.explore');
+    if (exploreButton) {
+        exploreButton.addEventListener('click', exploreOrEnterCity);
+    }
+    
+    // Previous attack and heal buttons remain the same
     const attackButton = document.querySelector('.action-button.attack');
     if (attackButton) {
         attackButton.addEventListener('click', function() {
@@ -1110,7 +1192,6 @@ function setupActionButtons() {
         });
     }
     
-    // Heal button
     const healButton = document.querySelector('.action-button.heal');
     if (healButton) {
         healButton.addEventListener('click', function() {
@@ -1286,6 +1367,9 @@ function initGame() {
     
     // Create inventory panel
     createInventoryPanel();
+
+    // Update location buttons based on initial position
+updateLocationButtons(gameState.playerPosition.x, gameState.playerPosition.y);
 }
 
 // Panel inventaris dan fungsinya
