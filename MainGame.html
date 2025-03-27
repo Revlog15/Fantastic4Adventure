@@ -479,6 +479,76 @@
             grid-column: 3;
             grid-row: 2;
         }
+
+        /* Add this to the style section */
+/* Update the info-icon style */
+.info-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-color: #d4af37;
+    color: #121212;
+    border-radius: 50%;
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 5px; /* Changed from margin-left to margin-right */
+    cursor: help;
+    position: relative;
+    vertical-align: middle;
+}
+
+.info-icon:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 0; /* Changed from 50% to 0 */
+    transform: none; /* Removed translateX */
+    background-color: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 100;
+    width: max-content;
+    max-width: 200px;
+}
+
+.info-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-color: #d4af37;
+    color: #121212;
+    border-radius: 50%;
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+    margin-left: 5px;
+    cursor: help;
+    position: relative;
+    line-height: 16px;
+}
+
+.info-icon:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: normal;
+    width: 200px;
+    pointer-events: none;
+    z-index: 100;
+    text-align: center;
+}
     </style>
 </head>
 <body>
@@ -561,11 +631,18 @@
         
         <!-- Panel Kanan dengan Tombol-tombol Aksi -->
         <div class="action-panel">
-            <button class="action-button location-specific explore">🔎 Eksplorasi</button>
-            <button class="action-button location-specific home-eat">🍲 Makan</button>
+            <button class="action-button location-specific explore">
+                <span class="info-icon" data-tooltip="Cost: -10 Sleep&#10;Possible Rewards: 5-20 coins">i</span> 🔎 Eksplorasi
+            </button>
+            <button class="action-button location-specific home-eat">
+                <span class="info-icon" data-tooltip="Cost: 20 coins&#10;Effect: +35 Hunger">i</span> 🍲 Makan
+            </button>
+            
             <button class="action-button location-specific home-bath">🚿 Mandi</button>
             <button class="action-button location-specific home-sleep">🛌 Tidur</button>
-            <button class="action-button location-specific home-work">💼 Bekerja</button>
+            <button class="action-button location-specific home-work">
+                <span class="info-icon" data-tooltip="Earnings: 50-150 coins&#10;Cost: -20 Sleep, -20 Hunger -35 hygiene">i</span> 💼 Bekerja
+            </button>
             <button class="action-button inventory">🎒 Inventaris</button>
 
             
@@ -1171,7 +1248,8 @@ function setupActionButtons() {
                 gameState.playerStats.money += earnings;
                 updateStats('sleep', -20);
                 updateStats('hunger', -20);
-                addLogEntry(`Anda bekerja dan mendapatkan ${earnings} koin! (Sleep -20, Hunger -20)`);
+                updateStats('hygiene', -35);
+                addLogEntry(`Anda bekerja dan mendapatkan ${earnings} koin! (Sleep -20, Hunger -20, Hygiene -35)`);
             } else {
                 addLogEntry("Anda terlalu lelah atau lapar untuk bekerja!");
             }
