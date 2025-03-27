@@ -1,0 +1,546 @@
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #121212;
+    color: #f0f0f0;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Layout Utama */
+.game-container {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+}
+
+
+
+
+/* Area Peta/Map - Fixed no scrolling */
+.map-area {
+    flex: 1;
+    background-color: #121212;
+    position: relative;
+    overflow: hidden; /* Prevents scrolling */
+    display: flex;
+    flex-direction: column;
+}
+
+.map {
+    flex: 1;
+    width: 100%;
+    position: relative;
+    overflow: hidden; /* Prevents scrolling */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.map-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    gap: 1px;
+    width: 100%;
+    height: 100%;
+    max-width: calc(100vh - 180px); /* Ensure square grid */
+    max-height: calc(100vh - 180px);
+}
+
+.map-tile {
+    background-color: #1a472a; /* Default grass color */
+    border: 1px solid #2a573a;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    aspect-ratio: 1/1;
+}
+
+.map-tile:hover {
+    filter: brightness(1.2);
+}
+
+.map-tile.special-location {
+    background-color: transparent;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: white;
+    font-size: 12px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.map-tile.special-location::after {
+    content: attr(data-location);
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 4px 0;
+}
+
+.map-tile.home {
+    background-image: url('/Lokasi/Home.jpg');
+}
+
+.map-tile.jakarta {
+    background-image: url('/Lokasi/Monas.png');
+}
+
+.map-tile.padang {
+    background-image: url('/Lokasi/Padang.png');
+}
+
+.map-tile.magelang {
+    background-image: url('/Lokasi/Candi.png');
+}
+
+.map-tile.papua {
+    background-image: url('/Lokasi/Honai.png');
+}
+
+/* Character styling */
+.character-tile {
+    position: relative;
+}
+
+.character-image {
+position: absolute;
+width: auto; /* Allow width to adjust based on height */
+height: 80%; /* Use percentage of tile instead of fixed size */
+max-width: 80%; /* Prevent image from overflowing tile width */
+max-height: 80%; /* Prevent image from overflowing tile height */
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+border-radius: 10%; /* Reduced from 50% to show more of the character */
+object-fit: contain; /* Show the entire image without cropping */
+padding: 2px; /* Small padding to prevent edge touching */
+}
+
+/* Untuk inventaris */
+.inventory-panel {
+position: fixed;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+width: 80%;
+max-width: 600px;
+background-color: rgba(0, 0, 0, 0.9);
+border: 2px solid #d4af37;
+border-radius: 10px;
+padding: 20px;
+z-index: 100;
+display: none;
+max-height: 80vh;
+overflow-y: auto;
+}
+
+.inventory-panel h2 {
+color: #d4af37;
+text-align: center;
+margin-bottom: 20px;
+}
+
+.inventory-grid {
+display: grid;
+grid-template-columns: repeat(4, 1fr);
+gap: 10px;
+}
+
+.inventory-item {
+background-color: #222;
+border: 1px solid #444;
+border-radius: 5px;
+padding: 10px;
+text-align: center;
+cursor: pointer;
+}
+
+.inventory-item-icon {
+font-size: 24px;
+margin-bottom: 5px;
+}
+
+.inventory-item-name {
+font-size: 12px;
+margin-bottom: 3px;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+
+.inventory-item-value {
+font-size: 10px;
+color: #d4af37;
+}
+
+.close-inventory {
+background-color: #444;
+color: white;
+border: none;
+padding: 10px 20px;
+border-radius: 5px;
+margin-top: 20px;
+cursor: pointer;
+display: block;
+margin-left: auto;
+margin-right: auto;
+}
+
+.close-inventory:hover {
+background-color: #666;
+}
+
+/* Item yang bisa dikumpulkan - untuk lokasi */
+.has-item {
+position: relative;
+}
+
+.item-icon {
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+font-size: 20px;
+z-index: 2;
+filter: drop-shadow(0 0 2px #000);
+cursor: pointer;
+animation: pulse 1.5s infinite;
+}
+
+.item-icon:hover::after {
+content: attr(data-tooltip);
+position: absolute;
+bottom: 100%;
+left: 50%;
+transform: translateX(-50%);
+background-color: rgba(0, 0, 0, 0.8);
+color: white;
+padding: 5px 10px;
+border-radius: 4px;
+font-size: 12px;
+white-space: nowrap;
+pointer-events: none;
+z-index: 100;
+}
+
+@keyframes pulse {
+0% { transform: translate(-50%, -50%) scale(1); }
+50% { transform: translate(-50%, -50%) scale(1.1); }
+100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* Panel Kanan - Tombol Aksi */
+.action-panel {
+    width: 250px;
+    background-color: #1a1a1a;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    z-index: 10;
+}
+
+.action-button {
+    background-color: #444;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 15px;
+    margin: 5px 0;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.action-button.location-specific {
+    background-color: #5a3d2b;
+    display: none; /* Hidden by default */
+}
+
+.action-button.home-eat {
+    background-color: #8b4513;
+}
+
+.action-button.home-bath {
+    background-color: #1e90ff;
+}
+
+.action-button.home-sleep {
+    background-color: #483d8b;
+}
+
+.action-button.home-work {
+    background-color: #556b2f;
+}
+
+.action-button.inventory {
+    background-color: #cd853f;
+}
+
+/* Simplified Top Panel - Status Bar */
+.top-panel {
+    width: 100%;
+    background-color: #121212;
+    padding: 10px;
+    border-bottom: 1px solid #333;
+    z-index: 10;
+    height: 80px;
+}
+
+.logo {
+    font-size: 30px;
+    font-weight: bold;
+    color: #d4af37;
+    text-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
+    letter-spacing: 2px;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.status-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-right: 20px;
+}
+
+.stat-group {
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+}
+
+.stat-label {
+    font-size: 14px;
+    margin-right: 10px;
+    white-space: nowrap;
+}
+
+.stat-bar {
+    width: 100px;
+    height: 12px;
+    background-color: #333;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-right: 15px;
+}
+
+.stat-fill {
+    height: 100%;
+    width: 50%;
+}
+
+.stat-fill.hunger {
+    background-color: #cc0000;
+}
+
+.stat-fill.sleep {
+    background-color: #ffcc00;
+}
+
+.stat-fill.hygiene {
+    background-color: #0066cc;
+}
+
+.stat-fill.happiness {
+    background-color: #00cc66;
+}
+
+.stat-value {
+    font-size: 14px;
+    width: 50px;
+    margin-left: 5px;
+}
+
+.info-display {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+
+.money-display, .time-display {
+    display: flex;
+    align-items: center;
+    
+    font-weight: bold;
+    color: #d4af37;
+    margin-left: 15px;
+}
+
+.money-icon, .time-icon {
+    margin-right: 5px;
+}
+
+/* Game log area - Full width */
+.game-log {
+width: 250px; /* Fixed width */
+height: calc(100vh - 80px); /* Full height minus top panel */
+background-color: rgba(0, 0, 0, 0.8);
+border-right: 1px solid #333;
+overflow-y: auto;
+padding: 15px;
+position: fixed;
+left: 0;
+top: 80px; /* Below top panel */
+z-index: 10;
+display: flex;
+gap: 12px;
+flex-direction: column;
+}
+.game-log::-webkit-scrollbar {
+    width: 6px;
+}
+
+.game-log::-webkit-scrollbar-track {
+    background: #222;
+}
+
+.game-log::-webkit-scrollbar-thumb {
+    background-color: #444;
+    border-radius: 3px;
+}
+
+.log-entry {
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #ccc;
+}
+
+/* Navigation buttons in action panel */
+.navigation-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 5px;
+    margin-top: 20px;
+}
+
+.nav-button {
+    width: 100%;
+    height: 50px;
+    font-size: 24px;
+    background-color: #555;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-button:hover {
+    background-color: #777;
+}
+
+.nav-button[data-direction="up"] {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.nav-button[data-direction="left"] {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.nav-button[data-direction="down"] {
+    grid-column: 2;
+    grid-row: 3;
+}
+
+.nav-button[data-direction="right"] {
+    grid-column: 3;
+    grid-row: 2;
+}
+
+/* Add this to the style section */
+/* Update the info-icon style */
+.info-icon {
+display: inline-block;
+width: 16px;
+height: 16px;
+background-color: #d4af37;
+color: #121212;
+border-radius: 50%;
+text-align: center;
+font-size: 12px;
+font-weight: bold;
+margin-right: 5px; /* Changed from margin-left to margin-right */
+cursor: help;
+position: relative;
+vertical-align: middle;
+}
+
+.info-icon:hover::after {
+content: attr(data-tooltip);
+position: absolute;
+bottom: 100%;
+left: 0; /* Changed from 50% to 0 */
+transform: none; /* Removed translateX */
+background-color: rgba(0, 0, 0, 0.9);
+color: white;
+padding: 5px 10px;
+border-radius: 4px;
+font-size: 12px;
+white-space: nowrap;
+pointer-events: none;
+z-index: 100;
+width: max-content;
+max-width: 200px;
+}
+
+.info-icon {
+display: inline-block;
+width: 16px;
+height: 16px;
+background-color: #d4af37;
+color: #121212;
+border-radius: 50%;
+text-align: center;
+font-size: 12px;
+font-weight: bold;
+margin-left: 5px;
+cursor: help;
+position: relative;
+line-height: 16px;
+}
+
+.info-icon:hover::after {
+content: attr(data-tooltip);
+position: absolute;
+bottom: 100%;
+left: 50%;
+transform: translateX(-50%);
+background-color: rgba(0, 0, 0, 0.9);
+color: white;
+padding: 5px 10px;
+border-radius: 4px;
+font-size: 12px;
+white-space: normal;
+width: 200px;
+pointer-events: none;
+z-index: 100;
+text-align: center;
+}
+</style>
