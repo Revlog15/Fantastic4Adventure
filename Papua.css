@@ -880,36 +880,64 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.9);
+    background-color: rgba(0, 0, 0, 0.8);
     display: none;
     justify-content: center;
     align-items: center;
-    z-index: 10000;
+    color: white;
+    font-size: 1.2rem;
+    text-align: center;
 }
 
 .game-over-content {
-    background: linear-gradient(145deg, #1a2a4a, #0a1a3a);
-    border: 3px solid #ff5252;
+    background-color: #222;
+    padding: 2rem;
     border-radius: 10px;
-    padding: 30px;
-    text-align: center;
-    max-width: 500px;
-    width: 90%;
-    animation: modal-appear 0.5s ease-out;
+    border: 2px solid #ff0000;
+    max-width: 80%;
 }
 
-@keyframes modal-appear {
-    from { transform: scale(0.8); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+.game-over-content h2 {
+    color: #ff0000;
+    margin-bottom: 1rem;
 }
 
 #restart-button {
-    background: linear-gradient(145deg, #ff5252, #ff1744);
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background-color: #ff0000;
     color: white;
     border: none;
-    padding: 12px 24px;
     border-radius: 5px;
-    margin-top: 20px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 1rem;
+}
+
+#restart-button:hover {
+    background-color: #cc0000;
+}
+
+/* Animasi untuk stat bar kritis */
+@keyframes pulse-red {
+    0% { background-color: #ff1744; box-shadow: 0 0 5px #ff1744; }
+    50% { background-color: #ff5252; box-shadow: 0 0 20px #ff5252; }
+    100% { background-color: #ff1744; box-shadow: 0 0 5px #ff1744; }
+}
+
+@keyframes pulse-yellow {
+    0% { background-color: #ffa000; box-shadow: 0 0 5px #ffa000; }
+    50% { background-color: #ffc107; box-shadow: 0 0 20px #ffc107; }
+    100% { background-color: #ffa000; box-shadow: 0 0 5px #ffa000; }
+}
+
+@keyframes pulse-blue {
+    0% { background-color: #00b0ff; box-shadow: 0 0 5px #00b0ff; }
+    50% { background-color: #40c4ff; box-shadow: 0 0 20px #40c4ff; }
+    100% { background-color: #00b0ff; box-shadow: 0 0 5px #00b0ff; }
+}
+
+@keyframes pulse-green {
+    0% { background-color: #00e676; box-shadow: 0 0 5px #00e676; }
+    50% { background-color: #69f0ae; box-shadow: 0 0 20px #69f0ae; }
+    100% { background-color: #00e676; box-shadow: 0 0 5px #00e676; }
 }
