@@ -23,13 +23,17 @@
             
             <div>
                 <div class="character-container">
-                    <img src="Character/Revlog.png" class=" character character1 active" alt="Revlog">
+                    <img src="Character/Revlog.png" class="character character1 active" alt="Revlog">
                     <img src="Character/Robert.png" class="character character2" alt="Robert">
                     <img src="Character/Sam.png" class="character character3" alt="Sam">
                     <img src="Character/Dimsum.png" class="character character4" alt="Dimsum">
-
                 </div>
                 <div class="character-name" id="characterName">REVLOG</div>
+                <div class="character-description" id="characterDescription">
+                    <h3>About Revlog</h3>
+                    <p class="strength">Strength: High happiness, recovers quickly from low mood</p>
+                    <p class="weakness">Weakness: Gets hungry and sleepy faster than others</p>
+                </div>
             </div>
             
             <div class="arrow" onclick="changeCharacter(1)">&#62;</div>
@@ -40,10 +44,42 @@
     
     <script>
         const characters = [
-            { name: "REVLOG", id: 1, image: "Revlog.png" },
-            { name: "ROBERT", id: 2, image: "Robert.png" },
-            { name: "SAM", id: 3, image: "Sam.png" },
-            { name: "DIMSUM", id: 4, image: "Dimsum.png" }
+            { 
+                name: "REVLOG", 
+                id: 1, 
+                image: "Revlog.png",
+                description: {
+                    strength: "ADAPT!, recovers quickly from low mood and low sleep",
+                    weakness: "GIMMIE FOOD, gets hungry quickly"
+                }
+            },
+            { 
+                name: "ROBERT", 
+                id: 2, 
+                image: "Robert.png",
+                description: {
+                    strength: "Strong hearted, recovers quickly from low mood",
+                    weakness: "Naive, gets easily hungry, sleeps less, and loses 10 gold each time he falls asleep"
+                }
+            },
+            { 
+                name: "SAM", 
+                id: 3, 
+                image: "Sam.png",
+                description: {
+                    strength: "Dilligent, gets more gold from working",
+                    weakness: "Sleepy Time, needs more sleep than others"
+                }
+            },
+            { 
+                name: "DIMSUM", 
+                id: 4, 
+                image: "Dimsum.png",
+                description: {
+                    strength: "Thrifty, spend less gold on food",
+                    weakness: "Emptiness, happyness rises not as much as the others when exploring"
+                }
+            }
         ];
         
         let currentCharacter = 0;
@@ -67,6 +103,14 @@
             
             // Update name
             document.getElementById('characterName').textContent = characters[currentCharacter].name;
+            
+            // Update description
+            const descriptionDiv = document.getElementById('characterDescription');
+            descriptionDiv.innerHTML = `
+               
+                <p class="strength">Strength: ${characters[currentCharacter].description.strength}</p>
+                <p class="weakness">Weakness: ${characters[currentCharacter].description.weakness}</p>
+            `;
         }
         
         function goToMenu() {
@@ -75,12 +119,17 @@
         }
         
         function startGame() {
-    const selectedCharacter = characters[currentCharacter].name;
-    localStorage.setItem('selectedCharacter', selectedCharacter);
-    // Redirect to game page with the selected character
-    window.location.href = `MainGame.html?character=${selectedCharacter.toLowerCase()}`;
-}
-        
+            // Store character name matching the keys in the characters object in MainGame.html
+            const selectedCharacter = characters[currentCharacter].name;
+            
+            // Since the characters object in MainGame.html uses format: Revlog, Robert, Sam, Dimsum
+            // We need to store the name with only first letter uppercase
+            const formattedName = selectedCharacter.charAt(0) + selectedCharacter.slice(1).toLowerCase();
+            
+            localStorage.setItem('selectedCharacter', formattedName);
+            // Redirect to game page
+            window.location.href = "MainGame.html";
+        }
     </script>
 </body>
 </html>

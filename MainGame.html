@@ -11,8 +11,47 @@
         box-sizing: border-box;
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       }
+
+      .info-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        background: #ffd700;
+        color: #000;
+        border-radius: 50%;
+        font-size: 12px;
+        font-weight: bold;
+        margin-right: 10px;
+        cursor: help;
+        position: relative;
+      }
+
+      .info-popup {
+        display: none;
+        position: absolute;
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 10px;
+        border-radius: 4px;
+        font-size: 14px;
+        width: max-content;
+        max-width: 200px;
+        z-index: 1000;
+        border: 1px solid gold;
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        margin-left: 8px;
+        white-space: pre-line;
+      }
+
+      .info-icon:hover .info-popup {
+        display: block;
+      }
     </style>
-    <link rel="stylesheet" href="main.css" />
+    <link rel="stylesheet" href="MainGame.css" />
   </head>
   <body>
     <div class="game-container">
@@ -154,6 +193,50 @@
         mapSize: { width: 8, height: 8 },
         gameTime: { hours: 0, minutes: 39 }, // Set to match screenshot
         selectedCharacter: "",
+      };
+
+      // First, let's fix the characters object to be more precise
+      const characters = {
+        Revlog: {
+          strength: {
+            happiness: 1.5, // 50% more happiness gain
+            sleep: 1.2, // 20% faster sleep recovery
+          },
+          weakness: {
+            hunger: 1.3, // 30% faster hunger decrease
+          },
+        },
+        Robert: {
+          strength: {
+            happiness: 1.5, // 50% more happiness gain
+          },
+          weakness: {
+            hunger: 1.4, // 40% faster hunger decrease
+            sleep: 1.3, // 30% faster sleep decrease
+            money: 2, // Pays double for everything (represented as multiplier)
+          },
+          special: {
+            sleepPenalty: 10, // Loses 10 gold when sleeping
+          },
+        },
+        Sam: {
+          strength: {
+            money: 1.5, // 50% more money from items/work
+            hygiene: 1.3, // 30% slower hygiene decrease
+          },
+          weakness: {
+            sleep: 1.4, // 40% faster sleep decrease
+          },
+        },
+        Dimsum: {
+          strength: {
+            hunger: 0.7, // 30% slower hunger decrease
+            money: 0.8, // 20% discount on purchases
+          },
+          weakness: {
+            happiness: 0.7, // 30% less happiness gain
+          },
+        },
       };
 
       // Game time update function (1 second real time = 1 minute game time)
@@ -407,75 +490,116 @@
 
       // Update character stats
       function updateStats(stat, change) {
-    const oldValue = gameState.playerStats[stat];
-    const maxStat = gameState.playerStats[`max${stat.charAt(0).toUpperCase() + stat.slice(1)}`];
-    
-    // Calculate new value
-    let newValue = oldValue + change;
-    newValue = Math.max(0, Math.min(newValue, maxStat));
-    
-    // Update the stat
-    gameState.playerStats[stat] = newValue;
-    
-    // Check for warnings immediately
-    if (newValue <= 50) {
-        const isCritical = newValue <= 30;
-        showStatWarning(stat, newValue, isCritical);
-    }
-    
-    // Check for game over
-    if (newValue <= 0) {
-        checkGameOver(stat);
-    }
-    
-    // Update display
-    updateStatusDisplay();
-}
+        const oldValue = gameState.playerStats[stat];
+        const maxStat =
+          gameState.playerStats[
+            `max${stat.charAt(0).toUpperCase() + stat.slice(1)}`
+          ];
+        const char = gameState.selectedCharacter;
+        const charAttrs = characters[char];
 
-function showStatWarning(stat, currentValue, isCritical) {
-    const statNames = {
-        hunger: {name: "Hunger", icon: "🔥", action: "makan"},
-        sleep: {name: "Sleep", icon: "💤", action: "tidur"},
-        hygiene: {name: "Hygiene", icon: "💧", action: "mandi"},
-        happiness: {name: "Happiness", icon: "💔", action: "hiburan"}
-    };
-    
-    const message = isCritical 
-        ? `${statNames[stat].icon.repeat(3)} KRITIS! ${statNames[stat].name}: ${currentValue}/100 - Segera ${statNames[stat].action}!`
-        : `${statNames[stat].icon} Warning! ${statNames[stat].name}: ${currentValue}/100 - Anda butuh ${statNames[stat].action}`;
-    
-    addLogEntry(message);
-    
-    // Start pulsing animation for critical
-    if (isCritical) {
-        const statBar = document.querySelector(`.stat-fill.${stat}`);
-        statBar.style.animation = `pulse-${stat} 0.8s infinite`;
-    }
-}
+        // Apply character modifiers
+        let modifiedChange = change;
+
+        if (charAttrs) {
+          // For positive changes (gains), check strengths
+          if (change > 0) {
+            if (charAttrs.strength && charAttrs.strength[stat]) {
+              modifiedChange *= charAttrs.strength[stat];
+            }
+          }
+          // For negative changes (costs), check weaknesses
+          else if (change < 0) {
+            if (charAttrs.weakness && charAttrs.weakness[stat]) {
+              modifiedChange *= charAttrs.weakness[stat];
+            }
+          }
+        }
+
+        // Round to nearest integer
+        modifiedChange = Math.round(modifiedChange);
+
+        // Calculate new value
+        let newValue = oldValue + modifiedChange;
+        newValue = Math.max(0, Math.min(newValue, maxStat));
+
+        // Update the stat
+        gameState.playerStats[stat] = newValue;
+
+        // Special case for Robert's sleep penalty
+        if (
+          char === "Robert" &&
+          stat === "sleep" &&
+          newValue <= 0 &&
+          charAttrs.special &&
+          charAttrs.special.sleepPenalty
+        ) {
+          const penalty = charAttrs.special.sleepPenalty;
+          gameState.playerStats.money = Math.max(
+            0,
+            gameState.playerStats.money - penalty
+          );
+          addLogEntry(`Robert kehilangan ${penalty} koin karena tertidur!`);
+        }
+
+        // Check for warnings
+        if (newValue <= 50) {
+          const isCritical = newValue <= 30;
+          showStatWarning(stat, newValue, isCritical);
+        }
+
+        // Check for game over
+        if (newValue <= 0) {
+          checkGameOver(stat);
+        }
+
+        // Update display
+        updateStatusDisplay();
+
+        return modifiedChange; // Return the actual change applied
+      }
+
+      function showStatWarning(stat, currentValue, isCritical) {
+        const statNames = {
+          hunger: { name: "Hunger", icon: "🔥", action: "makan" },
+          sleep: { name: "Sleep", icon: "💤", action: "tidur" },
+          hygiene: { name: "Hygiene", icon: "💧", action: "mandi" },
+          happiness: { name: "Happiness", icon: "💔", action: "hiburan" },
+        };
+
+        const message = isCritical
+          ? `${statNames[stat].icon.repeat(3)} KRITIS! ${
+              statNames[stat].name
+            }: ${currentValue}/100 - Segera ${statNames[stat].action}!`
+          : `${statNames[stat].icon} Warning! ${statNames[stat].name}: ${currentValue}/100 - Anda butuh ${statNames[stat].action}`;
+
+        addLogEntry(message);
+      }
+
       // Add this new function to check for game over
       function checkGameOver(stat) {
-    if (gameState.playerStats[stat] <= 0) {
-        const statNames = {
+        if (gameState.playerStats[stat] <= 0) {
+          const statNames = {
             hunger: "Kelaparan",
             sleep: "Kelelahan",
             hygiene: "Kebersihan",
-            happiness: "Kebahagiaan"
-        };
-        
-        clearInterval(gameTimeInterval);
-        addLogEntry(`GAME OVER! ${statNames[stat]} Anda mencapai 0.`);
-        showGameOverModal(statNames[stat]);
-    }
-}
+            happiness: "Kebahagiaan",
+          };
 
-function showGameOverModal(reason) {
-    // Remove existing modal if any
-    const existingModal = document.querySelector('.game-over-modal');
-    if (existingModal) existingModal.remove();
-    
-    const modal = document.createElement('div');
-    modal.className = 'game-over-modal';
-    modal.innerHTML = `
+          clearInterval(gameTimeInterval);
+          addLogEntry(`GAME OVER! ${statNames[stat]} Anda mencapai 0.`);
+          showGameOverModal(statNames[stat]);
+        }
+      }
+
+      function showGameOverModal(reason) {
+        // Remove existing modal if any
+        const existingModal = document.querySelector(".game-over-modal");
+        if (existingModal) existingModal.remove();
+
+        const modal = document.createElement("div");
+        modal.className = "game-over-modal";
+        modal.innerHTML = `
         <div class="game-over-content">
             <h2>GAME OVER</h2>
             <p>${reason} Anda mencapai 0!</p>
@@ -483,102 +607,123 @@ function showGameOverModal(reason) {
             <button id="restart-button">Mulai Ulang Sekarang</button>
         </div>
     `;
-    
-    document.body.appendChild(modal);
-    
-    // Make sure modal is visible
-    modal.style.display = 'flex';
-    modal.style.zIndex = '10000';
-    
-    // Button click handler
-    document.getElementById('restart-button').addEventListener('click', resetGame);
-    
-    // Auto-reset after 5 seconds
-    setTimeout(resetGame, 5000);
-}
 
-function resetGame() {
-    localStorage.removeItem('gameState');
-    window.location.reload();
-}
+        document.body.appendChild(modal);
+
+        // Make sure modal is visible
+        modal.style.display = "flex";
+        modal.style.zIndex = "10000";
+
+        // Button click handler
+        document
+          .getElementById("restart-button")
+          .addEventListener("click", resetGame);
+
+        // Auto-reset after 5 seconds
+        setTimeout(resetGame, 5000);
+      }
+
+      function resetGame() {
+        // Clear game state data
+        localStorage.removeItem("gameState");
+
+        // Redirect to character selection screen instead of reloading
+        window.location.href = "CharaSelect.html";
+      }
 
       // Don't forget to declare the gameTimeInterval at the top
       let gameTimeInterval; // Declare at the top with other variables
 
-function startGameTime() {
-    // Clear any existing interval to prevent duplicates
-    if (gameTimeInterval) {
-        clearInterval(gameTimeInterval);
-    }
-    
-    gameTimeInterval = setInterval(() => {
-        gameState.gameTime.minutes++;
-        
-        if (gameState.gameTime.minutes >= 60) {
+      function startGameTime() {
+        // Clear any existing interval to prevent duplicates
+        if (gameTimeInterval) {
+          clearInterval(gameTimeInterval);
+        }
+
+        gameTimeInterval = setInterval(() => {
+          gameState.gameTime.minutes++;
+
+          if (gameState.gameTime.minutes >= 60) {
             gameState.gameTime.hours++;
             gameState.gameTime.minutes = 0;
-            
+
             // Hourly stat decreases
-            updateStats('hunger', -5);
-            updateStats('sleep', -3);
-            updateStats('hygiene', -4);
-            
+            updateStats("hunger", -5);
+            updateStats("sleep", -3);
+            updateStats("hygiene", -4);
+
             // Check for low stats every hour
             checkLowStats();
-        }
-        
-        if (gameState.gameTime.hours >= 24) {
+          }
+
+          if (gameState.gameTime.hours >= 24) {
             gameState.gameTime.hours = 0;
-        }
-        
-        updateTimeDisplay();
-        
-        // Auto-save every 10 minutes
-        if (gameState.gameTime.minutes % 10 === 0) {
+          }
+
+          updateTimeDisplay();
+
+          // Auto-save every 10 minutes
+          if (gameState.gameTime.minutes % 10 === 0) {
             saveGameState();
-        }
-    }, 1000); // 1 second real time = 1 minute game time
-}
+          }
+        }, 1000); // 1 second real time = 1 minute game time
+      }
+
       // Update status display
       function updateStatusDisplay() {
-    // Update all stat values
-    document.getElementById('hunger-value').textContent = `${gameState.playerStats.hunger}/${gameState.playerStats.maxHunger}`;
-    document.getElementById('sleep-value').textContent = `${gameState.playerStats.sleep}/${gameState.playerStats.maxSleep}`;
-    document.getElementById('hygiene-value').textContent = `${gameState.playerStats.hygiene}/${gameState.playerStats.maxHygiene}`;
-    document.getElementById('happiness-value').textContent = `${gameState.playerStats.happiness}/${gameState.playerStats.maxHappiness}`;
-    
-    // Update stat bars
-    updateStatBar('hunger');
-    updateStatBar('sleep');
-    updateStatBar('hygiene');
-    updateStatBar('happiness');
-    
-    // Update money display
-    document.getElementById('money-value').textContent = gameState.playerStats.money;
-}
+        // Update all stat values
+        document.getElementById(
+          "hunger-value"
+        ).textContent = `${gameState.playerStats.hunger}/${gameState.playerStats.maxHunger}`;
+        document.getElementById(
+          "sleep-value"
+        ).textContent = `${gameState.playerStats.sleep}/${gameState.playerStats.maxSleep}`;
+        document.getElementById(
+          "hygiene-value"
+        ).textContent = `${gameState.playerStats.hygiene}/${gameState.playerStats.maxHygiene}`;
+        document.getElementById(
+          "happiness-value"
+        ).textContent = `${gameState.playerStats.happiness}/${gameState.playerStats.maxHappiness}`;
 
-function updateStatBar(stat) {
-    const bar = document.querySelector(`.stat-fill.${stat}`);
-    const max = gameState.playerStats[`max${stat.charAt(0).toUpperCase() + stat.slice(1)}`];
-    const percentage = (gameState.playerStats[stat] / max) * 100;
-    
-    // Update width and color
-    bar.style.width = `${percentage}%`;
-    
-    // Handle animation
-    if (gameState.playerStats[stat] <= 30) {
-        bar.style.animation = `pulse-${stat} 0.8s infinite`;
-    } else {
-        bar.style.animation = 'none';
-        // Reset to original colors
-        bar.style.opacity = '1';
-        bar.style.boxShadow = 
-            stat === 'hunger' ? '0 0 5px #ff1744' :
-            stat === 'sleep' ? '0 0 5px #ffa000' :
-            stat === 'hygiene' ? '0 0 5px #00b0ff' :
-            '0 0 5px #00e676';
-    }
-}
+        // Update stat bars
+        updateStatBar("hunger");
+        updateStatBar("sleep");
+        updateStatBar("hygiene");
+        updateStatBar("happiness");
+
+        // Update money display
+        document.getElementById("money-value").textContent =
+          gameState.playerStats.money;
+      }
+
+      function updateStatBar(stat) {
+        const bar = document.querySelector(`.stat-fill.${stat}`);
+        const max =
+          gameState.playerStats[
+            `max${stat.charAt(0).toUpperCase() + stat.slice(1)}`
+          ];
+        const percentage = (gameState.playerStats[stat] / max) * 100;
+
+        // Update width and color
+        bar.style.width = `${percentage}%`;
+
+        // Handle animation
+        if (gameState.playerStats[stat] <= 30) {
+          bar.style.animation = `pulse-${stat} 0.8s infinite`;
+        } else {
+          bar.style.animation = "none";
+          // Reset to original colors
+          bar.style.opacity = "1";
+          bar.style.boxShadow =
+            stat === "hunger"
+              ? "0 0 5px #ff1744"
+              : stat === "sleep"
+              ? "0 0 5px #ffa000"
+              : stat === "hygiene"
+              ? "0 0 5px #00b0ff"
+              : "0 0 5px #00e676";
+        }
+      }
 
       // Add log entry
       function addLogEntry(message) {
@@ -704,12 +849,24 @@ function updateStatBar(stat) {
         const selectedChar = localStorage.getItem("selectedCharacter");
         if (selectedChar) {
           gameState.selectedCharacter = selectedChar;
-
-          // Format untuk file image
-          gameState.selectedCharacter =
-            gameState.selectedCharacter.charAt(0).toUpperCase() +
-            gameState.selectedCharacter.slice(1).toLowerCase();
+          // Log selected character for debugging
+          console.log("Selected character:", gameState.selectedCharacter);
+          // Verify character exists in the characters object
+          console.log(
+            "Character exists in characters object:",
+            characters.hasOwnProperty(gameState.selectedCharacter)
+          );
+        } else {
+          // Default to Revlog if no character selected
+          gameState.selectedCharacter = "Revlog";
+          console.log(
+            "No character selected, defaulting to:",
+            gameState.selectedCharacter
+          );
         }
+
+        // Log the characters object keys for debugging
+        console.log("Available character keys:", Object.keys(characters));
       }
 
       // Tambahkan ini ke initGame
@@ -821,6 +978,7 @@ function updateStatBar(stat) {
           }
         });
       });
+
       // Tambahkan ini ke bagian <script> MainGame.html untuk memperbaiki pergerakan dan mengubah cara masuk ke kota
 
       // Perbaikan untuk keyboard event listener
@@ -881,56 +1039,22 @@ function updateStatBar(stat) {
         // Home actions
         const eatButton = document.querySelector(".action-button.home-eat");
         if (eatButton) {
-          eatButton.addEventListener("click", function () {
-            if (gameState.playerStats.money >= 20) {
-              gameState.playerStats.money -= 20;
-              updateStats("hunger", 35);
-              addLogEntry(
-                "Anda makan makanan lezat. Hunger +35 (Biaya: 20 koin)"
-              );
-            } else {
-              addLogEntry(
-                "Uang tidak cukup untuk membeli makanan! (Biaya Makanan: 20 koin)"
-              );
-            }
-          });
+          eatButton.addEventListener("click", eat);
         }
 
         const bathButton = document.querySelector(".action-button.home-bath");
         if (bathButton) {
-          bathButton.addEventListener("click", function () {
-            updateStats("hygiene", 100);
-            addLogEntry("Anda mandi dan merasa segar.");
-          });
+          bathButton.addEventListener("click", shower);
         }
 
         const sleepButton = document.querySelector(".action-button.home-sleep");
         if (sleepButton) {
-          sleepButton.addEventListener("click", function () {
-            updateStats("sleep", 100);
-            addLogEntry("Anda tidur nyenyak.");
-          });
+          sleepButton.addEventListener("click", sleep);
         }
 
         const workButton = document.querySelector(".action-button.home-work");
         if (workButton) {
-          workButton.addEventListener("click", function () {
-            if (
-              gameState.playerStats.sleep >= 20 &&
-              gameState.playerStats.hunger >= 20
-            ) {
-              const earnings = Math.floor(Math.random() * 100) + 50;
-              gameState.playerStats.money += earnings;
-              updateStats("sleep", -20);
-              updateStats("hunger", -20);
-              updateStats("hygiene", -35);
-              addLogEntry(
-                `Anda bekerja dan mendapatkan ${earnings} koin! (Sleep -20, Hunger -20, Hygiene -35)`
-              );
-            } else {
-              addLogEntry("Anda terlalu lelah atau lapar untuk bekerja!");
-            }
-          });
+          workButton.addEventListener("click", work);
         }
 
         // Explore button for other locations
@@ -965,16 +1089,16 @@ function updateStatBar(stat) {
 
       // Fungsi untuk eksplorasi atau masuk ke kota
       function exploreOrEnterCity() {
-        // Cek apakah cukup energy untuk eksplorasi
+        // Cek energi cukup
         if (gameState.playerStats.sleep < 10) {
           addLogEntry("Sleep tidak cukup untuk eksplorasi!");
           return;
         }
 
-        // Kurangi energy
+        // Kurangi energi
         updateStats("sleep", -10);
 
-        // Cek apakah player berada di special location
+        // Lokasi spesial
         const specialLocations = [
           { name: "HOME", x: 1, y: 1, file: "Home.html" },
           { name: "JAKARTA", x: 6, y: 1, file: "Jakarta.html" },
@@ -985,287 +1109,292 @@ function updateStatBar(stat) {
 
         const playerX = gameState.playerPosition.x;
         const playerY = gameState.playerPosition.y;
+
         const specialLocation = specialLocations.find(
           (loc) => loc.x === playerX && loc.y === playerY
         );
 
         if (specialLocation) {
-          // Player berada di special location, masuk ke kota
+          // Masuk lokasi spesial
           addLogEntry(`Anda menjelajahi ${specialLocation.name}...`);
 
-          setTimeout(() => {
-            addLogEntry(
-              `Anda menemukan pintu masuk menuju ${specialLocation.name}!`
-            );
+          // Simpan state sebelum pindah halaman
+          saveGameState();
 
-            // Simpan game state
-            saveGameState();
-
-            // Arahkan ke halaman kota
-            window.location.href = specialLocation.file;
-          }, 1000);
+          // Langsung redirect ke halaman lokasi
+          window.location.href = specialLocation.file;
         } else {
-          // Normal exploration dalam overworld
+          // Eksplorasi biasa
           addLogEntry("Anda menjelajahi area sekitar...");
 
-          setTimeout(() => {
-            // Random exploration results
-            const result = Math.random();
-            if (result < 0.3) {
-              // Find coins
-              const coins = Math.floor(Math.random() * 15) + 5;
-              gameState.playerStats.money += coins;
-              addLogEntry(`Anda menemukan ${coins} koin!`);
-              updateStatusDisplay();
-            } else if (result < 0.6) {
-              // Find nothing
-              addLogEntry("Tidak ada yang menarik di sekitar sini.");
-            } else if (result < 0.8) {
-              // Hint about locations
-              const nearestLocation = findNearestLocation(playerX, playerY);
-              if (nearestLocation) {
-                const distance =
-                  Math.abs(playerX - nearestLocation.x) +
-                  Math.abs(playerY - nearestLocation.y);
-
-                if (distance <= 2) {
-                  addLogEntry(
-                    `Anda sangat dekat dengan ${nearestLocation.name}!`
-                  );
-                } else if (distance <= 4) {
-                  addLogEntry(
-                    `${nearestLocation.name} tidak terlalu jauh dari sini.`
-                  );
-                } else {
-                  addLogEntry(
-                    `Anda melihat petunjuk arah ke ${nearestLocation.name} di kejauhan.`
-                  );
-                }
-              }
-            } else {
-              // Happiness boost
-              updateStats("happiness", 5);
-              addLogEntry(
-                "Pemandangan indah di sekitar membuat Anda merasa bahagia!"
-              );
-            }
-          }, 1000);
+          // Random efek eksplorasi
+          const result = Math.random();
+          if (result < 0.3) {
+            // Temukan koin
+            const coins = Math.floor(Math.random() * 15) + 5;
+            gameState.playerStats.money += coins;
+            addLogEntry(`Anda menemukan ${coins} koin!`);
+            updateStatusDisplay();
+          } else if (result < 0.6) {
+            // Tidak menemukan apa-apa
+            addLogEntry("Tidak ada yang menarik di sekitar sini.");
+          } else {
+            // Kebahagiaan
+            updateStats("happiness", 15);
+            addLogEntry(
+              "Pemandangan indah membuat Anda bahagia! (+15 Happiness)"
+            );
+          }
         }
       }
 
-      // Fungsi untuk menemukan lokasi terdekat dari posisi player
-      function findNearestLocation(playerX, playerY) {
-        const specialLocations = [
-          { name: "HOME", x: 1, y: 1 },
-          { name: "JAKARTA", x: 6, y: 1 },
-          { name: "PADANG", x: 1, y: 6 },
-          { name: "MAGELANG", x: 6, y: 6 },
-          { name: "PAPUA", x: 3, y: 3 },
-        ];
+      // Fungsi untuk mengecek stat rendah
+      function checkLowStats() {
+        // Hunger warnings
+        if (gameState.playerStats.hunger <= 50) {
+          const urgency =
+            gameState.playerStats.hunger <= 30
+              ? "🔥🔥🔥 KRITIS!"
+              : "🔥 Warning!";
+          addLogEntry(
+            `${urgency} Hunger: ${gameState.playerStats.hunger}/100 - ${
+              gameState.playerStats.hunger <= 30
+                ? "Cari makanan segera!"
+                : "Anda merasa lapar"
+            }`
+          );
 
-        // Filter out current location
-        const otherLocations = specialLocations.filter(
-          (loc) => loc.x !== playerX || loc.y !== playerY
-        );
-
-        if (otherLocations.length === 0) return null;
-
-        // Find nearest
-        return otherLocations.reduce((nearest, current) => {
-          const distCurrent =
-            Math.abs(playerX - current.x) + Math.abs(playerY - current.y);
-          const distNearest =
-            Math.abs(playerX - nearest.x) + Math.abs(playerY - nearest.y);
-
-          return distCurrent < distNearest ? current : nearest;
-        });
-      }
-
-      // Fungsi untuk menyimpan game state
-      function saveGameState() {
-        const gameStateData = {
-          playerPosition: gameState.playerPosition,
-          playerStats: gameState.playerStats,
-          mapSize: gameState.mapSize,
-          gameTime: gameState.gameTime,
-          selectedCharacter: gameState.selectedCharacter,
-          inventory: gameState.inventory || [],
-          collectedItems: gameState.collectedItems || {},
-        };
-
-        localStorage.setItem("gameState", JSON.stringify(gameStateData));
-      }
-
-      // Fungsi untuk memuat game state
-      function loadGameState() {
-        const savedState = localStorage.getItem("gameState");
-        if (savedState) {
-          const parsedState = JSON.parse(savedState);
-
-          // Update gameState dengan data yang disimpan
-          if (parsedState.playerStats)
-            gameState.playerStats = parsedState.playerStats;
-          if (parsedState.gameTime) gameState.gameTime = parsedState.gameTime;
-          if (parsedState.inventory)
-            gameState.inventory = parsedState.inventory;
-          if (parsedState.collectedItems)
-            gameState.collectedItems = parsedState.collectedItems;
-
-          // Jika kembali dari lokasi, gunakan posisi yang tersimpan
-          // Jika pertama kali main, gunakan posisi default
-          if (parsedState.playerPosition) {
-            gameState.playerPosition = parsedState.playerPosition;
+          // Visual feedback for critical
+          if (gameState.playerStats.hunger <= 30) {
+            document.querySelector(".stat-fill.hunger").style.animation =
+              "pulse-red 0.8s infinite";
           }
         }
 
-        // Set karakter dari localStorage
-        const selectedChar = localStorage.getItem("selectedCharacter");
-        if (selectedChar) {
-          gameState.selectedCharacter = selectedChar;
+        // Sleep warnings
+        if (gameState.playerStats.sleep <= 50) {
+          const urgency =
+            gameState.playerStats.sleep <= 30
+              ? "💤💤💤 KRITIS!"
+              : "💤 Warning!";
+          addLogEntry(
+            `${urgency} Sleep: ${gameState.playerStats.sleep}/100 - ${
+              gameState.playerStats.sleep <= 30
+                ? "Istirahat sekarang!"
+                : "Anda mengantuk"
+            }`
+          );
 
-          // Format untuk file image
-          gameState.selectedCharacter =
-            gameState.selectedCharacter.charAt(0).toUpperCase() +
-            gameState.selectedCharacter.slice(1).toLowerCase();
+          if (gameState.playerStats.sleep <= 30) {
+            document.querySelector(".stat-fill.sleep").style.animation =
+              "pulse-yellow 0.8s infinite";
+          }
+        }
+
+        // Hygiene warnings
+        if (gameState.playerStats.hygiene <= 50) {
+          const urgency =
+            gameState.playerStats.hygiene <= 30
+              ? "💧💧💧 KRITIS!"
+              : "💧 Warning!";
+          addLogEntry(
+            `${urgency} Hygiene: ${gameState.playerStats.hygiene}/100 - ${
+              gameState.playerStats.hygiene <= 30
+                ? "Bersihkan diri segera!"
+                : "Anda merasa kotor"
+            }`
+          );
+
+          if (gameState.playerStats.hygiene <= 30) {
+            document.querySelector(".stat-fill.hygiene").style.animation =
+              "pulse-blue 0.8s infinite";
+          }
+        }
+
+        // Happiness warnings
+        if (gameState.playerStats.happiness <= 50) {
+          const urgency =
+            gameState.playerStats.happiness <= 30
+              ? "💔💔💔 KRITIS!"
+              : "💔 Warning!";
+          addLogEntry(
+            `${urgency} Happiness: ${gameState.playerStats.happiness}/100 - ${
+              gameState.playerStats.happiness <= 30
+                ? "Lakukan sesuatu yang menyenangkan!"
+                : "Anda merasa tidak bahagia"
+            }`
+          );
+
+          if (gameState.playerStats.happiness <= 30) {
+            document.querySelector(".stat-fill.happiness").style.animation =
+              "pulse-green 0.8s infinite";
+          }
         }
       }
 
-      // Update fungsi initGame untuk memuat game state
-      function initGame() {
-        // Load game state terlebih dahulu
-        loadGameState();
+      // Start the game when the page loads
+      window.onload = initGame;
 
-        // Generate map
-        generateMap();
+      // Keep only one window.onload extension
+      const originalOnload = window.onload;
+      window.onload = function () {
+        // Run the original onload function if it exists
+        if (typeof originalOnload === "function") {
+          originalOnload();
+        }
+
+        // Add our additional setup
+        setupActionButtons();
+      };
+
+      function shower() {
+        const char = gameState.selectedCharacter;
+        const charAttrs = characters[char];
+
+        // Base values
+        let hygieneGain = 100 - gameState.playerStats.hygiene; // Fill to max
+
+        // Apply character-specific modifiers
+        if (charAttrs && charAttrs.strength && charAttrs.strength.hygiene) {
+          hygieneGain = Math.round(hygieneGain * charAttrs.strength.hygiene);
+        }
+
+        // Apply changes
+        const actualGain = updateStats("hygiene", hygieneGain);
+
+        let message = `Anda mandi. Hygiene +${actualGain}`;
+        if (char === "Sam") message += " (30% lebih efektif)";
+
+        addLogEntry(message);
         updateStatusDisplay();
-        updateTimeDisplay();
-        startGameTime();
-
-        // Add initial log entry
-        addLogEntry(
-          `Game dimulai dengan karakter ${gameState.selectedCharacter}.`
-        );
-
-        // Create inventory panel
-        createInventoryPanel();
-
-        // Update location buttons based on initial position
-        updateLocationButtons(
-          gameState.playerPosition.x,
-          gameState.playerPosition.y
-        );
       }
 
-      // Panel inventaris dan fungsinya
-      function createInventoryPanel() {
-        // Check if panel doesn't exist yet
-        if (!document.getElementById("inventory-panel")) {
-          const inventoryPanel = document.createElement("div");
-          inventoryPanel.id = "inventory-panel";
-          inventoryPanel.className = "inventory-panel";
+      function eat() {
+        if (gameState.playerStats.money >= 20) {
+          // Kurangi uang
+          gameState.playerStats.money -= 20;
 
-          inventoryPanel.innerHTML = `
-            <h2>Inventaris</h2>
-            <div id="inventory-grid" class="inventory-grid"></div>
-            <button class="close-inventory" onclick="toggleInventory(false)">Tutup</button>
-        `;
+          // Tambah hunger
+          updateStats("hunger", 35);
 
-          document.body.appendChild(inventoryPanel);
+          // Tampilkan pesan
+          addLogEntry("Anda makan makanan lezat. Hunger +35 (Biaya: 20 koin)");
+
+          // Update tampilan
+          updateStatusDisplay();
+        } else {
+          addLogEntry("Uang tidak cukup untuk makan!");
         }
       }
 
-      function toggleInventory(show) {
-        const panel = document.getElementById("inventory-panel");
-        if (!panel && show) {
-          createInventoryPanel();
-          updateInventoryDisplay();
-          document.getElementById("inventory-panel").style.display = "block";
-        } else if (panel) {
-          panel.style.display = show ? "block" : "none";
-          if (show) {
-            updateInventoryDisplay();
-          }
-        }
-      }
+      function work() {
+        const char = gameState.selectedCharacter;
+        const charAttrs = characters[char];
 
-      function updateInventoryDisplay() {
-        const grid = document.getElementById("inventory-grid");
-        if (!grid) return;
-
-        grid.innerHTML = "";
-
-        if (!gameState.inventory || gameState.inventory.length === 0) {
-          grid.innerHTML =
-            '<p style="grid-column: span 4; text-align: center; color: #aaa;">Inventaris kosong. Jelajahi lokasi untuk menemukan barang!</p>';
+        // Check requirements
+        if (
+          gameState.playerStats.sleep < 20 ||
+          gameState.playerStats.hunger < 20
+        ) {
+          addLogEntry("Terlalu lelah atau lapar untuk bekerja!");
           return;
         }
 
-        gameState.inventory.forEach((item) => {
-          const itemElement = document.createElement("div");
-          itemElement.className = "inventory-item";
-          itemElement.innerHTML = `
-            <div class="inventory-item-icon">${item.icon}</div>
-            <div class="inventory-item-name">${item.name}</div>
-            <div class="inventory-item-value">${item.value} koin</div>
-        `;
+        // Base earnings and costs
+        let baseEarn = Math.floor(Math.random() * 101) + 50; // 50-150
+        let sleepCost = -20;
+        let hungerCost = -20;
+        let hygieneCost = -35;
 
-          // Tambahkan tooltip atau detail saat di-klik
-          itemElement.addEventListener("click", () => {
-            alert(
-              `${item.name}\nNilai: ${item.value} koin\nDitemukan di: ${
-                item.location || "Unknown"
-              }`
-            );
-          });
+        // Apply character modifiers
+        if (charAttrs) {
+          // Sam earns more
+          if (charAttrs.strength && charAttrs.strength.money) {
+            baseEarn = Math.round(baseEarn * charAttrs.strength.money);
+          }
+          // Robert and Revlog get hungrier faster
+          if (charAttrs.weakness && charAttrs.weakness.hunger) {
+            hungerCost = Math.round(hungerCost * charAttrs.weakness.hunger);
+          }
+          // Robert and Sam lose sleep faster
+          if (charAttrs.weakness && charAttrs.weakness.sleep) {
+            sleepCost = Math.round(sleepCost * charAttrs.weakness.sleep);
+          }
+        }
 
-          grid.appendChild(itemElement);
+        // Apply changes
+        gameState.playerStats.money += baseEarn;
+        const actualSleepCost = updateStats("sleep", sleepCost);
+        const actualHungerCost = updateStats("hunger", hungerCost);
+        const actualHygieneCost = updateStats("hygiene", hygieneCost);
+
+        let message = `Anda bekerja. Mendapatkan ${baseEarn} koin`;
+        if (char === "Sam") message += " (50% lebih banyak)";
+        message += `. Sleep ${actualSleepCost}, Hunger ${actualHungerCost}, Hygiene ${actualHygieneCost}.`;
+
+        addLogEntry(message);
+      }
+
+      function sleep() {
+        const char = gameState.selectedCharacter;
+        const charAttrs = characters[char];
+
+        // Calculate sleep needed to reach max
+        const sleepNeeded =
+          gameState.playerStats.maxSleep - gameState.playerStats.sleep;
+
+        // Apply Revlog's faster recovery if applicable
+        let sleepGain = sleepNeeded;
+        if (charAttrs && charAttrs.strength && charAttrs.strength.sleep) {
+          sleepGain = Math.round(sleepNeeded * charAttrs.strength.sleep);
+        }
+
+        // Apply the sleep
+        updateStats("sleep", sleepGain);
+
+        let message = `Anda tidur. Sleep +${sleepGain}`;
+        if (char === "Revlog") message += " (Pemulihan 20% lebih cepat)";
+
+        addLogEntry(message);
+      }
+
+      // Fungsi untuk membuat tooltips
+      function setupTooltips() {
+        const infoIcons = document.querySelectorAll(".info-icon");
+        infoIcons.forEach((icon) => {
+          // Hapus popup lama jika ada
+          const oldPopup = icon.querySelector(".info-popup");
+          if (oldPopup) {
+            oldPopup.remove();
+          }
+
+          // Buat popup baru
+          const popup = document.createElement("div");
+          popup.className = "info-popup";
+          popup.textContent = icon.getAttribute("data-tooltip");
+          icon.appendChild(popup);
         });
       }
-      // Fungsi untuk mengecek stat rendah
-      function checkLowStats() {
-    // Hunger warnings
-    if (gameState.playerStats.hunger <= 50) {
-        const urgency = gameState.playerStats.hunger <= 30 ? '🔥🔥🔥 KRITIS!' : '🔥 Warning!';
-        addLogEntry(`${urgency} Hunger: ${gameState.playerStats.hunger}/100 - ${gameState.playerStats.hunger <= 30 ? 'Cari makanan segera!' : 'Anda merasa lapar'}`);
-        
-        // Visual feedback for critical
-        if (gameState.playerStats.hunger <= 30) {
-            document.querySelector('.stat-fill.hunger').style.animation = 'pulse-red 0.8s infinite';
+
+      // Panggil setupTooltips saat DOM loaded
+      document.addEventListener("DOMContentLoaded", function () {
+        setupTooltips();
+
+        // Re-setup tooltips setiap kali tombol aksi diperbarui
+        const observer = new MutationObserver(function (mutations) {
+          mutations.forEach(function (mutation) {
+            if (mutation.addedNodes.length) {
+              setupTooltips();
+            }
+          });
+        });
+
+        // Observe changes in action-panel
+        const actionPanel = document.querySelector(".action-panel");
+        if (actionPanel) {
+          observer.observe(actionPanel, { childList: true, subtree: true });
         }
-    }
-    
-    // Sleep warnings
-    if (gameState.playerStats.sleep <= 50) {
-        const urgency = gameState.playerStats.sleep <= 30 ? '💤💤💤 KRITIS!' : '💤 Warning!';
-        addLogEntry(`${urgency} Sleep: ${gameState.playerStats.sleep}/100 - ${gameState.playerStats.sleep <= 30 ? 'Istirahat sekarang!' : 'Anda mengantuk'}`);
-        
-        if (gameState.playerStats.sleep <= 30) {
-            document.querySelector('.stat-fill.sleep').style.animation = 'pulse-yellow 0.8s infinite';
-        }
-    }
-    
-    // Hygiene warnings
-    if (gameState.playerStats.hygiene <= 50) {
-        const urgency = gameState.playerStats.hygiene <= 30 ? '💧💧💧 KRITIS!' : '💧 Warning!';
-        addLogEntry(`${urgency} Hygiene: ${gameState.playerStats.hygiene}/100 - ${gameState.playerStats.hygiene <= 30 ? 'Bersihkan diri segera!' : 'Anda merasa kotor'}`);
-        
-        if (gameState.playerStats.hygiene <= 30) {
-            document.querySelector('.stat-fill.hygiene').style.animation = 'pulse-blue 0.8s infinite';
-        }
-    }
-    
-    // Happiness warnings
-    if (gameState.playerStats.happiness <= 50) {
-        const urgency = gameState.playerStats.happiness <= 30 ? '💔💔💔 KRITIS!' : '💔 Warning!';
-        addLogEntry(`${urgency} Happiness: ${gameState.playerStats.happiness}/100 - ${gameState.playerStats.happiness <= 30 ? 'Lakukan sesuatu yang menyenangkan!' : 'Anda merasa tidak bahagia'}`);
-        
-        if (gameState.playerStats.happiness <= 30) {
-            document.querySelector('.stat-fill.happiness').style.animation = 'pulse-green 0.8s infinite';
-        }
-    }
-}
-      // Start the game when the page loads
-      window.onload = initGame;
+      });
     </script>
     <div id="inventory-panel" class="inventory-panel">
       <h2>Inventaris</h2>
