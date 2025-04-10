@@ -509,7 +509,7 @@
         return nonMountainItems.every((item) => {
           return (
             gameState.collectedItems &&
-            gameState.collectedItems[`jakarta_${item.x}_${item.y}`]
+            gameState.collectedItems[`magelang_${item.x}_${item.y}`]
           );
         });
       }
@@ -652,7 +652,7 @@
             // Check if item has already been collected
             const isCollected =
               gameState.collectedItems &&
-              gameState.collectedItems[`jakarta_${x}_${y}`];
+              gameState.collectedItems[`magelang_${x}_${y}`];
 
             if (item && !isCollected) {
               const itemIcon = document.createElement("div");
@@ -702,7 +702,7 @@
           if (!gameState.collectedItems) {
             gameState.collectedItems = {};
           }
-          gameState.collectedItems[`jakarta_${item.x}_${item.y}`] = true;
+          gameState.collectedItems[`magelang_${item.x}_${item.y}`] = true;
 
           // Add to inventory
           if (!gameState.inventory) {
@@ -713,7 +713,7 @@
             name: item.name,
             icon: item.icon,
             value: item.value,
-            location: "JAKARTA",
+            location: "MAGELANG",
           });
 
           // Add money
@@ -818,7 +818,7 @@
         // Check if item has already been collected
         const isCollected =
           gameState.collectedItems &&
-          gameState.collectedItems[`jakarta_${x}_${y}`];
+          gameState.collectedItems[`magelang_${x}_${y}`];
 
         if (item && !isCollected) {
           // Add a notification about the item
@@ -1065,7 +1065,7 @@
             const uncollectedItems = jakartaItems.filter((item) => {
               return (
                 !gameState.collectedItems ||
-                !gameState.collectedItems[`jakarta_${item.x}_${item.y}`]
+                !gameState.collectedItems[`magelang_${item.x}_${item.y}`]
               );
             });
 
@@ -1113,7 +1113,7 @@
                 addLogEntry("Anda menemukan rute baru yang menarik.");
               } else {
                 addLogEntry(
-                  "Anda menikmati pemandangan indah di sekitar Jakarta."
+                  "Anda menikmati pemandangan indah di sekitar Magelang."
                 );
                 updateStats("happiness", 5);
               }
@@ -1223,7 +1223,8 @@
           let lastClickTime = 0;
           souvenirButton.addEventListener("click", () => {
             const currentTime = Date.now();
-            if (currentTime - lastClickTime < 1000) { // Prevent clicks within 1 second
+            if (currentTime - lastClickTime < 1000) {
+              // Prevent clicks within 1 second
               return;
             }
             lastClickTime = currentTime;
@@ -1247,7 +1248,8 @@
           let lastClickTime = 0;
           restaurantButton.addEventListener("click", () => {
             const currentTime = Date.now();
-            if (currentTime - lastClickTime < 1000) { // Prevent clicks within 1 second
+            if (currentTime - lastClickTime < 1000) {
+              // Prevent clicks within 1 second
               return;
             }
             lastClickTime = currentTime;
@@ -1403,20 +1405,24 @@
 
       // Add buySouvenirs function
       function buySouvenirs() {
-        const cost = 20;  // Base cost
-        const happinessGain = 25;  // Base happiness gain
+        const cost = 20; // Base cost
+        const happinessGain = 25; // Base happiness gain
 
         // Calculate actual cost based on character
-        let actualCost = -cost;  // Make it negative since we're spending
+        let actualCost = -cost; // Make it negative since we're spending
         const char = gameState.selectedCharacter;
-        
+
         if (gameState.playerStats.money >= Math.abs(actualCost)) {
           // First update money
           updateStats("money", actualCost);
           // Then update happiness
           updateStats("happiness", happinessGain);
-          
-          addLogEntry(`Anda membeli oleh-oleh seharga ${Math.abs(actualCost)} koin. Happiness +${happinessGain}!`);
+
+          addLogEntry(
+            `Anda membeli oleh-oleh seharga ${Math.abs(
+              actualCost
+            )} koin. Happiness +${happinessGain}!`
+          );
         } else {
           addLogEntry("Uang tidak cukup untuk membeli oleh-oleh!");
         }
@@ -1424,19 +1430,23 @@
 
       // Add eatAtLocalRestaurant function
       function eatAtLocalRestaurant() {
-        const cost = 25;  // Base cost
-        const hungerRestore = 35;  // Base hunger restore
+        const cost = 25; // Base cost
+        const hungerRestore = 35; // Base hunger restore
 
         // Calculate actual cost based on character
-        let actualCost = -cost;  // Make it negative since we're spending
-        
+        let actualCost = -cost; // Make it negative since we're spending
+
         if (gameState.playerStats.money >= Math.abs(actualCost)) {
           // First update money
           updateStats("money", actualCost);
           // Then update hunger
           updateStats("hunger", hungerRestore);
-          
-          addLogEntry(`Anda makan di restoran lokal seharga ${Math.abs(actualCost)} koin. Hunger +${hungerRestore}!`);
+
+          addLogEntry(
+            `Anda makan di restoran lokal seharga ${Math.abs(
+              actualCost
+            )} koin. Hunger +${hungerRestore}!`
+          );
         } else {
           addLogEntry("Uang tidak cukup untuk makan di restoran!");
         }

@@ -68,6 +68,30 @@
       .stat-reward {
         color: #ffd700;
       }
+
+      /* Add hover styles for info icon */
+      .info-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        background: #00b0ff;
+        color: #000;
+        border-radius: 50%;
+        font-size: 12px;
+        font-weight: bold;
+        margin-right: 10px;
+        cursor: pointer;
+      }
+
+      .action-container {
+        position: relative;
+      }
+
+      .action-container:hover .info-popup {
+        display: block;
+      }
     </style>
     <link rel="stylesheet" href="Jakarta.css" />
   </head>
@@ -181,8 +205,8 @@
           </div>
         </div>
 
-         <!-- Buy Souvenirs Button -->
-         <div class="action-container">
+        <!-- Buy Souvenirs Button -->
+        <div class="action-container">
           <button class="action-button souvenirs" id="buy-souvenirs">
             <span class="info-icon">i</span>
             <span>🛍️ Beli Oleh-oleh</span>
@@ -1497,7 +1521,9 @@
           updateStats("happiness", happinessGain);
 
           addLogEntry(
-            `Anda membeli oleh-oleh seharga ${Math.abs(actualCost)} koin. Happiness +${happinessGain}!`
+            `Anda membeli oleh-oleh seharga ${Math.abs(
+              actualCost
+            )} koin. Happiness +${happinessGain}!`
           );
         } else {
           addLogEntry("Uang tidak cukup untuk membeli oleh-oleh!");
@@ -1530,7 +1556,9 @@
           updateStats("hunger", hungerRestore);
 
           addLogEntry(
-            `Anda makan di restoran lokal seharga ${Math.abs(actualCost)} koin. Hunger +${hungerRestore}!`
+            `Anda makan di restoran lokal seharga ${Math.abs(
+              actualCost
+            )} koin. Hunger +${hungerRestore}!`
           );
         } else {
           addLogEntry("Uang tidak cukup untuk makan di restoran!");
