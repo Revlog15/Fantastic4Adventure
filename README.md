@@ -1,9 +1,13 @@
 # Fantastic4Adventure
 Sebuah project game dari Team Fantastic 4
 Nama-Nama Game Dev
+
 1.Revand Anrian Putra (00000126621) (Ketua)
-2.Mochamad Rifky Fauzan (00000126061)
+
+2.Mochamad Rifky Fauzan (0000012606)
+
 3.Andika Syahfutra	(00000126614)
+
 4.Dimas Pradhitya (00000126564)
 
 Game Rules
