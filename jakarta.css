@@ -6,31 +6,89 @@ body {
     overflow: hidden;
 }
 
+
 #explore-info-popup {
-    display: none;
-    position: absolute !important;
-    right: 100% !important;
-    top: 0 !important;
-    width: 200px !important;
-    background: #2a2a2a !important;
-    border: 2px solid #FFD700 !important;
-    border-radius: 8px !important;
-    padding: 12px !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
-    margin-right: 10px !important;
-    z-index: 9999 !important;
-  }
-  
-  /* Arrow pointing from popup to button */
-  #explore-info-popup:after {
-    content: '' !important;
-    position: absolute !important;
-    left: 100% !important;
-    top: 15px !important;
-    border-width: 8px !important;
-    border-style: solid !important;
-    border-color: transparent transparent transparent #FFD700 !important;
-  }
+  display: none;
+  position: absolute;
+  right: 100%;
+  top: 0;
+  width: 250px;
+  background: #1a2a4a;
+  border: 2px solid #4fc3f7;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 4px 15px rgba(79, 195, 247, 0.5);
+  margin-right: 15px;
+  z-index: 1000;
+  color: #e0f7ff;
+  font-size: 14px;
+}
+
+#explore-info-popup::after {
+  content: "";
+  position: absolute;
+  left: 100%;
+  top: 20px;
+  border-width: 8px;
+  border-style: solid;
+  border-color: transparent transparent transparent #4fc3f7;
+}
+
+#explore-info-popup h3 {
+  color: #4fc3f7;
+  margin-top: 0;
+  margin-bottom: 15px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #4fc3f7;
+  font-size: 16px;
+}
+
+#explore-info-popup ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+#explore-info-popup li {
+  margin-bottom: 8px;
+  list-style-type: none;
+  position: relative;
+  padding-left: 15px;
+}
+
+#explore-info-popup li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #4fc3f7;
+}
+
+#explore-info-popup .stat-change {
+  display: inline-block;
+  width: 40px;
+  text-align: right;
+  margin-right: 10px;
+}
+
+#explore-info-popup .stat-name {
+  color: #e0f7ff;
+}
+
+/* Positive change */
+#explore-info-popup .positive {
+  color: #69f0ae;
+}
+
+/* Negative change */
+#explore-info-popup .negative {
+  color: #ff5252;
+}
+
+/* Show popup on hover */
+.action-button.explore:hover + #explore-info-popup,
+#explore-info-popup:hover {
+  display: block;
+}
+
 
 /* Game container */
 .game-container {
@@ -359,10 +417,16 @@ body {
 .action-button {
     background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
     color: #e0f7ff;
+    width: 100%;
+    min-height: 50px;
+    padding: 12px 15px;
+    margin: 5px 0;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
     border: 1px solid #4fc3f7;
     border-radius: 4px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-    padding: 15px;
     cursor: pointer;
     font-size: 16px;
     display: flex;
@@ -656,6 +720,17 @@ body {
   .action-button:hover .info-popup {
     display: block;
   }
+
+  .action-button.souvenirs {
+    background: linear-gradient(145deg, #8a5a2a, #6a3a0a);
+    border: 1px solid #ffca28;
+  }
+  
+  /* Restaurant button specific styling */
+  .action-button.restaurant {
+    background: linear-gradient(145deg, #a52a2a, #851a1a);
+    border: 1px solid #ff5252;
+  }
  
   .info-popup::after {
     content: '';
@@ -785,7 +860,6 @@ body {
 /* Add subtle animation to action buttons */
 .action-button {
     position: relative;
-    overflow: hidden;
 }
 
 

@@ -1,135 +1,197 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Character Selection - Fantastic 4: Adventure At Nusantara</title>
-    <link rel="stylesheet" href="CharaSelect.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Character Selection - FANTASTIC4 ADVENTURE</title>
+    <link rel="stylesheet" href="CharaSelect.css" />
+  </head>
+  <body>
     <div class="container">
-        <!-- Changed from div to button for better accessibility and click behavior -->
-        <button class="back-button" onclick="goToMenu()">
-            &#60; <span style="margin-left: 10px;">Back to menu</span>
-        </button>
-        
-        <div class="game-title">Fantastic 4</div>
-        <div class="game-subtitle">Adventure At Nusantara</div>
-        
-        <h1>Select Your Character</h1>
-        
-        <div class="character-selection">
-            <div class="arrow" onclick="changeCharacter(-1)">&#60;</div>
-            
-            <div>
-                <div class="character-container">
-                    <img src="Character/Revlog.png" class="character character1 active" alt="Revlog">
-                    <img src="Character/Robert.png" class="character character2" alt="Robert">
-                    <img src="Character/Sam.png" class="character character3" alt="Sam">
-                    <img src="Character/Dimsum.png" class="character character4" alt="Dimsum">
-                </div>
-                <div class="character-name" id="characterName">REVLOG</div>
-                <div class="character-description" id="characterDescription">
-                    <h3>About Revlog</h3>
-                    <p class="strength">Strength: High happiness, recovers quickly from low mood</p>
-                    <p class="weakness">Weakness: Gets hungry and sleepy faster than others</p>
-                </div>
-            </div>
-            
-            <div class="arrow" onclick="changeCharacter(1)">&#62;</div>
+      <!-- Changed from div to button for better accessibility and click behavior -->
+      <button class="back-button" onclick="goToMenu()">
+        &#60; <span style="margin-left: 10px">Back to menu</span>
+      </button>
+
+      <div class="game-title">Fantastic 4</div>
+      <div class="game-subtitle">Adventure At Nusantara</div>
+
+      <h1>Select Your Character</h1>
+
+      <div class="character-selection">
+        <div class="arrow" onclick="changeCharacter(-1)">&#60;</div>
+
+        <div>
+          <div class="character-container">
+            <img
+              src="Character/Revlog.png"
+              class="character character1 active"
+              alt="Revlog"
+            />
+            <img
+              src="Character/Robert.png"
+              class="character character2"
+              alt="Robert"
+            />
+            <img
+              src="Character/Sam.png"
+              class="character character3"
+              alt="Sam"
+            />
+            <img
+              src="Character/Dimsum.png"
+              class="character character4"
+              alt="Dimsum"
+            />
+          </div>
+          <div class="character-name" id="characterName">
+            Enter your name below
+          </div>
+          <div class="name-input-container">
+            <input
+              type="text"
+              id="playerName"
+              placeholder="Type your name here"
+              maxlength="20"
+            />
+          </div>
+          <div class="character-description" id="characterDescription">
+            <h3>About Your Character</h3>
+            <p class="strength">
+              Strength: High happiness, recovers quickly from low mood
+            </p>
+            <p class="weakness">
+              Weakness: Gets hungry and sleepy faster than others
+            </p>
+          </div>
         </div>
-        
-        <button class="continue-button" onclick="startGame()">START</button>
+
+        <div class="arrow" onclick="changeCharacter(1)">&#62;</div>
+      </div>
+
+      <button class="continue-button" onclick="startGame()">START</button>
     </div>
-    
+
     <script>
-        const characters = [
-            { 
-                name: "REVLOG", 
-                id: 1, 
-                image: "Revlog.png",
-                description: {
-                    strength: "ADAPT!, recovers quickly from low mood and low sleep",
-                    weakness: "GIMMIE FOOD, gets hungry quickly"
-                }
-            },
-            { 
-                name: "ROBERT", 
-                id: 2, 
-                image: "Robert.png",
-                description: {
-                    strength: "Strong hearted, recovers quickly from low mood",
-                    weakness: "Naive, gets easily hungry, sleeps less, and loses 10 gold each time he falls asleep"
-                }
-            },
-            { 
-                name: "SAM", 
-                id: 3, 
-                image: "Sam.png",
-                description: {
-                    strength: "Dilligent, gets more gold from working",
-                    weakness: "Sleepy Time, needs more sleep than others"
-                }
-            },
-            { 
-                name: "DIMSUM", 
-                id: 4, 
-                image: "Dimsum.png",
-                description: {
-                    strength: "Thrifty, spend less gold on food",
-                    weakness: "Emptiness, happyness rises not as much as the others when exploring"
-                }
-            }
-        ];
-        
-        let currentCharacter = 0;
-        
-        // Initialize character images
+      const characters = [
+        {
+          name: "REVLOG",
+          id: 1,
+          image: "Revlog.png",
+          description: {
+            strength: "ADAPT!, recovers quickly from low mood and low sleep",
+            weakness: "GIMMIE FOOD, gets hungry quickly",
+          },
+        },
+        {
+          name: "ROBERT",
+          id: 2,
+          image: "Robert.png",
+          description: {
+            strength: "Strong hearted, recovers quickly from low mood",
+            weakness:
+              "Naive, gets easily hungry, sleeps less, and loses 10 gold each time he falls asleep",
+          },
+        },
+        {
+          name: "SAM",
+          id: 3,
+          image: "Sam.png",
+          description: {
+            strength: "Dilligent, gets more gold from working",
+            weakness: "Sleepy Time, needs more sleep than others",
+          },
+        },
+        {
+          name: "DIMSUM",
+          id: 4,
+          image: "Dimsum.png",
+          description: {
+            strength: "Thrifty, spend less gold on food",
+            weakness:
+              "Emptiness, happyness rises not as much as the others when exploring",
+          },
+        },
+      ];
+
+      let currentCharacter = 0;
+
+      // Initialize character images
+      updateCharacterDisplay();
+
+      function playMoveSound() {
+        const audio = new Audio("sounds/moveandselect.mp3");
+        audio.volume = 0.5;
+        audio.play().catch((error) => console.log("Audio play failed:", error));
+      }
+
+      function playConfirmSound() {
+        const audio = new Audio("sounds/confirm.mp3");
+        audio.volume = 0.7;
+        audio.play().catch((error) => console.log("Audio play failed:", error));
+      }
+
+      function changeCharacter(direction) {
+        playMoveSound();
+        // Hide current character
+        document
+          .querySelector(`.character${characters[currentCharacter].id}`)
+          .classList.remove("active");
+
+        // Update index with wrap-around
+        currentCharacter =
+          (currentCharacter + direction + characters.length) %
+          characters.length;
+
         updateCharacterDisplay();
-        
-        function changeCharacter(direction) {
-            // Hide current character
-            document.querySelector(`.character${characters[currentCharacter].id}`).classList.remove('active');
-            
-            // Update index with wrap-around
-            currentCharacter = (currentCharacter + direction + characters.length) % characters.length;
-            
-            updateCharacterDisplay();
-        }
-        
-        function updateCharacterDisplay() {
-            // Show current character
-            document.querySelector(`.character${characters[currentCharacter].id}`).classList.add('active');
-            
-            // Update name
-            document.getElementById('characterName').textContent = characters[currentCharacter].name;
-            
-            // Update description
-            const descriptionDiv = document.getElementById('characterDescription');
-            descriptionDiv.innerHTML = `
-               
+      }
+
+      function updateCharacterDisplay() {
+        // Show current character
+        document
+          .querySelector(`.character${characters[currentCharacter].id}`)
+          .classList.add("active");
+
+        // Update description
+        const descriptionDiv = document.getElementById("characterDescription");
+        descriptionDiv.innerHTML = `
+                <h3>About Your Character</h3>
                 <p class="strength">Strength: ${characters[currentCharacter].description.strength}</p>
                 <p class="weakness">Weakness: ${characters[currentCharacter].description.weakness}</p>
             `;
+      }
+
+      function goToMenu() {
+        console.log("Going back to menu"); // Debug line
+        window.location.href = "index.html";
+      }
+
+      function startGame() {
+        // Get the player's custom name
+        const playerName = document.getElementById("playerName").value.trim();
+
+        // Validate name
+        if (!playerName) {
+          alert("Please enter your name to continue!");
+          return;
         }
-        
-        function goToMenu() {
-            console.log("Going back to menu"); // Debug line
-            window.location.href = "index.html"; 
-        }
-        
-        function startGame() {
-            // Store character name matching the keys in the characters object in MainGame.html
-            const selectedCharacter = characters[currentCharacter].name;
-            
-            // Since the characters object in MainGame.html uses format: Revlog, Robert, Sam, Dimsum
-            // We need to store the name with only first letter uppercase
-            const formattedName = selectedCharacter.charAt(0) + selectedCharacter.slice(1).toLowerCase();
-            
-            localStorage.setItem('selectedCharacter', formattedName);
-            // Redirect to game page
-            window.location.href = "MainGame.html";
-        }
+
+        playConfirmSound();
+
+        // Store character type and player name
+        const selectedCharacter = characters[currentCharacter].name;
+        const formattedName =
+          selectedCharacter.charAt(0) +
+          selectedCharacter.slice(1).toLowerCase();
+
+        localStorage.setItem("selectedCharacter", formattedName);
+        localStorage.setItem("playerName", playerName);
+
+        // Add a small delay before redirecting to ensure sound plays
+        setTimeout(() => {
+          window.location.href = "MainGame.html";
+        }, 300);
+      }
     </script>
-</body>
+  </body>
 </html>

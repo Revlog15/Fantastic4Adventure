@@ -3,13 +3,110 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Papua - Adventure Quest</title>
+    <title>Papua - FANTASTIC4 ADVENTURE</title>
     <style>
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      #explore-info-popup {
+        display: none;
+        position: absolute !important;
+        right: 100% !important;
+        top: 0 !important;
+        width: 200px !important;
+        background: #2a2a2a !important;
+        border: 2px solid #ffd700 !important;
+        border-radius: 8px !important;
+        padding: 12px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+        margin-right: 10px !important;
+        z-index: 9999 !important;
+      }
+
+      .popup-title {
+        color: #ffd700;
+        font-weight: bold;
+        margin-bottom: 8px;
+        border-bottom: 1px solid #444;
+        padding-bottom: 4px;
+      }
+
+      #explore-info-popup:after {
+        content: "" !important;
+        position: absolute !important;
+        left: 100% !important;
+        top: 15px !important;
+        border-width: 8px !important;
+        border-style: solid !important;
+        border-color: transparent transparent transparent #ffd700 !important;
+      }
+
+      .popup-row {
+        color: #eee;
+        font-size: 12px;
+        line-height: 1.6;
+        padding: 2px 0;
+      }
+
+      .action-button.souvenirs,
+      .action-button.restaurant {
+        background-color: #2a2a2a;
+        color: white;
+        position: relative;
+      }
+
+      .info-popup {
+        display: none;
+        position: absolute;
+        right: 100%;
+        top: 0;
+        width: 200px;
+        background: #2a2a2a;
+        border: 2px solid #00b0ff;
+        border-radius: 8px;
+        padding: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        margin-right: 10px;
+        z-index: 9999;
+      }
+
+      .info-popup:after {
+        content: "";
+        position: absolute;
+        left: 100%;
+        top: 15px;
+        border-width: 8px;
+        border-style: solid;
+        border-color: transparent transparent transparent #00b0ff;
+      }
+
+      .popup-title {
+        color: #00b0ff;
+        font-weight: bold;
+        margin-bottom: 8px;
+        border-bottom: 1px solid #444;
+        padding-bottom: 4px;
+      }
+
+      .popup-row {
+        margin: 4px 0;
+        color: #fff;
+      }
+
+      .stat-change.negative {
+        color: #ff4444;
+      }
+
+      .stat-change.positive {
+        color: #00e676;
+      }
+
+      .stat-reward {
+        color: #ffd700;
       }
     </style>
     <link rel="stylesheet" href="Papua.css" />
@@ -28,7 +125,7 @@
       <div class="map-area">
         <!-- Panel Atas: Logo dan Status -->
         <div class="top-panel">
-          <div class="logo">ADVENTURE QUEST</div>
+          <div class="logo">FANTASTIC4 ADVENTURE</div>
           <div class="location-title">PAPUA</div>
           <div class="status-area">
             <!-- Health Bar (Now Hunger) -->
@@ -99,35 +196,64 @@
         </button>
 
         <!-- Explore Button with External Info -->
-        <!-- Fixed Explore Button with Left Info Icon -->
-        <button class="action-button explore" id="explore-button">
-          <span
-            class="info-icon"
-            style="
-              display: inline-flex;
-              align-items: center;
-              justify-content: center;
-              width: 18px;
-              height: 18px;
-              background: #ffd700;
-              color: #000;
-              border-radius: 50%;
-              font-size: 12px;
-              font-weight: bold;
-              margin-right: 10px;
-            "
-            >i</span
-          >
-          <span>🔎 Eksplorasi</span>
+        <div class="action-container">
+          <button class="action-button explore" id="explore-button">
+            <span class="info-icon">i</span>
+            <span>🔎 Eksplorasi</span>
+          </button>
           <div id="explore-info-popup">
             <div class="popup-title">Exploration Details</div>
-            <div>• Sleep: -5</div>
-            <div>• Hygiene: -5</div>
-            <div>• Hunger: -10</div>
-            <div>• Happiness: +25</div>
-            <div>• Rewards: Items/Coins</div>
+            <div class="popup-row">
+              <span class="stat-change negative">-5</span> Sleep
+            </div>
+            <div class="popup-row">
+              <span class="stat-change negative">-5</span> Hygiene
+            </div>
+            <div class="popup-row">
+              <span class="stat-change negative">-10</span> Hunger
+            </div>
+            <div class="popup-row">
+              <span class="stat-change positive">+25</span> Happiness
+            </div>
+            <div class="popup-row">
+              Rewards: <span class="stat-reward">Items/Coins</span>
+            </div>
           </div>
-        </button>
+        </div>
+
+        <!-- Buy Souvenirs Button -->
+        <div class="action-container">
+          <button class="action-button souvenirs" id="buy-souvenirs">
+            <span class="info-icon">i</span>
+            <span>🛍️ Beli Oleh-oleh</span>
+          </button>
+          <div id="souvenirs-info-popup" class="info-popup">
+            <div class="popup-title">Souvenirs Details</div>
+            <div class="popup-row">
+              <span class="stat-change negative">-20</span> Money
+            </div>
+            <div class="popup-row">
+              <span class="stat-change positive">+25</span> Happiness
+            </div>
+          </div>
+        </div>
+
+        <!-- Eat at Local Restaurant Button -->
+        <div class="action-container">
+          <button class="action-button restaurant" id="eat-local">
+            <span class="info-icon">i</span>
+            <span>🍽️ Makan di Restoran Lokal</span>
+          </button>
+          <div id="restaurant-info-popup" class="info-popup">
+            <div class="popup-title">Restaurant Details</div>
+            <div class="popup-row">
+              <span class="stat-change negative">-25</span> Money
+            </div>
+            <div class="popup-row">
+              <span class="stat-change positive">+35</span> Hunger
+            </div>
+          </div>
+        </div>
 
         <!-- Inventory Button -->
         <button class="action-button inventory" id="inventory-button">
@@ -148,13 +274,15 @@
     <div id="inventory-panel" class="inventory-panel">
       <h2>Inventaris</h2>
       <div id="inventory-grid" class="inventory-grid"></div>
-      <button class="close-inventory" id="close-inventory">Tutup</button>
+      <button id="close-inventory" class="close-inventory">Tutup</button>
     </div>
 
     <script>
       // Inisialisasi variabel game dari localStorage
       let gameState = {};
       let gameTimeInterval;
+      let isMoving = false;
+      let isActionInProgress = false;
 
       // Function to add log entries
       function addLogEntry(message) {
@@ -409,8 +537,49 @@
         ).textContent = `${hours}:${minutes}`;
       }
 
-      // Move player function
+      // Add action button handler
+      function handleActionButton(action) {
+        if (isActionInProgress) {
+          return;
+        }
+
+        isActionInProgress = true;
+        playConfirmSound();
+
+        // Perform the action
+        action();
+
+        // Reset after a longer delay to prevent double-clicks
+        setTimeout(() => {
+          isActionInProgress = false;
+        }, 1000); // Increased from 200ms to 1000ms
+      }
+
+      // Add sound effect function
+      function playConfirmSound() {
+        const audio = new Audio("sounds/confirm.mp3");
+        audio.volume = 0.5;
+        audio.play().catch((error) => console.log("Audio play failed:", error));
+      }
+
+      // Add movement sound function
+      function playMoveSound() {
+        const audio = new Audio("sounds/moveandselect.mp3");
+        audio.volume = 0.5;
+        audio.play().catch((error) => console.log("Audio play failed:", error));
+      }
+
+      // Update movePlayer function to only use moveandselect.mp3
       function movePlayer(direction) {
+        if (isMoving) {
+          return;
+        }
+
+        isMoving = true;
+        const audio = new Audio("sounds/moveandselect.mp3");
+        audio.volume = 0.5;
+        audio.play().catch((error) => console.log("Audio play failed:", error));
+
         let newX = gameState.playerPosition.x;
         let newY = gameState.playerPosition.y;
 
@@ -429,11 +598,11 @@
             break;
         }
 
-        // If position didn't change, do nothing
         if (
           newX === gameState.playerPosition.x &&
           newY === gameState.playerPosition.y
         ) {
+          isMoving = false;
           return;
         }
 
@@ -471,6 +640,10 @@
 
         // Save game state
         saveGameState();
+
+        setTimeout(() => {
+          isMoving = false;
+        }, 200);
       }
 
       // Generate map dengan template peta Papua
@@ -546,18 +719,6 @@
           gameState.playerPosition.x === item.x &&
           gameState.playerPosition.y === item.y
         ) {
-          // Get character attributes
-          const char = gameState.selectedCharacter;
-          const charAttrs = characters[char];
-
-          // Base item value
-          let itemValue = item.value;
-
-          // Apply character-specific money bonuses
-          if (charAttrs && charAttrs.strength && charAttrs.strength.money) {
-            itemValue = Math.round(itemValue * charAttrs.strength.money);
-          }
-
           // Collect the item
           if (!gameState.collectedItems) {
             gameState.collectedItems = {};
@@ -572,17 +733,17 @@
             id: item.id,
             name: item.name,
             icon: item.icon,
-            value: itemValue,
+            value: item.value,
             location: "PAPUA",
           });
 
-          // Add money with character bonus
-          gameState.playerStats.money += itemValue;
+          // Add money
+          gameState.playerStats.money += item.value;
 
-          // Add log entry with character-specific bonus info
-          let message = `Anda menemukan ${item.name}! (${item.icon}) Nilai: ${itemValue} koin`;
-          if (char === "Sam") message += " (50% lebih banyak)";
-          addLogEntry(message);
+          // Add log entry
+          addLogEntry(
+            `Anda menemukan ${item.name}! (${item.icon}) Nilai: ${item.value} koin.`
+          );
 
           // Update display
           updateStatusDisplay();
@@ -597,22 +758,8 @@
             tile.classList.remove("has-item");
           }
 
-          // Add happiness for finding an item with character-specific bonus
-          let happinessGain = 10;
-          if (charAttrs && charAttrs.strength && charAttrs.strength.happiness) {
-            happinessGain = Math.round(
-              happinessGain * charAttrs.strength.happiness
-            );
-          } else if (
-            charAttrs &&
-            charAttrs.weakness &&
-            charAttrs.weakness.happiness
-          ) {
-            happinessGain = Math.round(
-              happinessGain * charAttrs.weakness.happiness
-            );
-          }
-          updateStats("happiness", happinessGain);
+          // Add happiness for finding an item
+          updateStats("happiness", 10);
 
           // Save state
           saveGameState();
@@ -621,8 +768,12 @@
         }
       }
 
-      // Handle tile click for movement
+      // Update handleTileClick to not play confirm sound
       function handleTileClick(event) {
+        if (isMoving) {
+          return;
+        }
+
         let target = event.target;
 
         // If clicked on character or item, get the parent tile
@@ -642,36 +793,15 @@
           Math.abs(y - gameState.playerPosition.y);
 
         if (dist <= 1) {
-          // Only allow moving 1 tile per click
-          // Remove character class from previous tile
-          const prevTile = document.querySelector(".character-tile");
-          if (prevTile) {
-            prevTile.classList.remove("character-tile");
-            const charImg = prevTile.querySelector(".character-image");
-            if (charImg) charImg.remove();
-          }
-
-          // Update player position
-          gameState.playerPosition.x = x;
-          gameState.playerPosition.y = y;
-
-          // Add character to new tile
-          target.classList.add("character-tile");
-          const charImg = document.createElement("img");
-          charImg.className = "character-image";
-          charImg.src = `Character/${gameState.selectedCharacter}.png`;
-          target.appendChild(charImg);
-
-          // Reduce energy for movement
-
-          // Log action
-          addLogEntry(`Anda bergerak ke koordinat (${x}, ${y}).`);
-
-          // Check for items or events
-          checkForItems(x, y);
-
-          // Save state
-          saveGameState();
+          movePlayer(
+            x < gameState.playerPosition.x
+              ? "left"
+              : x > gameState.playerPosition.x
+              ? "right"
+              : y < gameState.playerPosition.y
+              ? "up"
+              : "down"
+          );
         } else {
           addLogEntry("Terlalu jauh untuk bergerak langsung ke sana.");
         }
@@ -718,12 +848,101 @@
             `max${stat.charAt(0).toUpperCase() + stat.slice(1)}`
           ];
 
+        // Define character attributes
+        const characters = {
+          Revlog: {
+            strength: {
+              happiness: 1.5, // 50% more happiness gain
+              sleep: 1.2, // 20% faster sleep recovery
+            },
+            weakness: {
+              hunger: 1.3, // 30% faster hunger decrease
+            },
+          },
+          Robert: {
+            strength: {
+              happiness: 1.5, // 50% more happiness gain
+            },
+            weakness: {
+              hunger: 1.4, // 40% faster hunger decrease
+              sleep: 1.3, // 30% faster sleep decrease
+              money: 2, // Pays double for everything
+            },
+            special: {
+              sleepPenalty: 10, // Loses 10 gold when sleeping
+            },
+          },
+          Sam: {
+            strength: {
+              money: 1.5, // 50% more money from items/work
+              hygiene: 1.3, // 30% slower hygiene decrease
+            },
+            weakness: {
+              sleep: 1.4, // 40% faster sleep decrease
+            },
+          },
+          Dimsum: {
+            strength: {
+              hunger: 0.7, // 30% slower hunger decrease
+              money: 0.8, // 20% discount on purchases
+            },
+            weakness: {
+              happiness: 0.7, // 30% less happiness gain
+            },
+          },
+        };
+
+        const char = gameState.selectedCharacter;
+        const charAttrs = characters[char];
+
+        // Apply character modifiers
+        let modifiedChange = change;
+
+        if (charAttrs) {
+          // For positive changes (gains), check strengths
+          if (change > 0) {
+            if (charAttrs.strength && charAttrs.strength[stat]) {
+              modifiedChange *= charAttrs.strength[stat];
+            }
+          }
+          // For negative changes (costs), check weaknesses
+          else if (change < 0) {
+            if (charAttrs.weakness && charAttrs.weakness[stat]) {
+              modifiedChange *= charAttrs.weakness[stat];
+            }
+          }
+
+          // Special case for Dimsum's happiness gain
+          if (char === "Dimsum" && stat === "happiness" && change > 0) {
+            modifiedChange *= 0.7; // 30% less happiness gain
+          }
+        }
+
+        // Round to nearest integer
+        modifiedChange = Math.round(modifiedChange);
+
         // Calculate new value
-        let newValue = oldValue + change;
+        let newValue = oldValue + modifiedChange;
         newValue = Math.max(0, Math.min(newValue, maxStat));
 
         // Update the stat
         gameState.playerStats[stat] = newValue;
+
+        // Special case for Robert's sleep penalty
+        if (
+          char === "Robert" &&
+          stat === "sleep" &&
+          newValue <= 0 &&
+          charAttrs.special &&
+          charAttrs.special.sleepPenalty
+        ) {
+          const penalty = charAttrs.special.sleepPenalty;
+          gameState.playerStats.money = Math.max(
+            0,
+            gameState.playerStats.money - penalty
+          );
+          addLogEntry(`Robert kehilangan ${penalty} koin karena tertidur!`);
+        }
 
         // Check for warnings immediately
         if (newValue <= 50) {
@@ -738,6 +957,8 @@
 
         // Update display
         updateStatusDisplay();
+
+        return modifiedChange; // Return the actual change amount
       }
 
       function checkGameOver(stat) {
@@ -788,7 +1009,7 @@
 
       function resetGame() {
         localStorage.removeItem("gameState");
-        window.location.href = "MainGame.html"; // Change this to redirect to MainGame.html
+        window.location.href = "CharaSelect.html"; // Change to redirect to character selection
       }
 
       function showStatWarning(stat, currentValue, isCritical) {
@@ -878,6 +1099,8 @@
 
       function toggleInventory(show) {
         const panel = document.getElementById("inventory-panel");
+        if (!panel) return;
+
         panel.style.display = show ? "block" : "none";
         if (show) {
           updateInventoryDisplay();
@@ -921,51 +1144,11 @@
       // Eksplorasi
       function exploreLocation() {
         if (gameState.playerStats.sleep >= 10) {
-          // Get character attributes
-          const char = gameState.selectedCharacter;
-          const charAttrs = characters[char];
-
-          // Base exploration costs
-          let sleepCost = -5;
-          let hungerCost = -10;
-          let hygieneCost = -5;
-          let happinessGain = 25;
-
-          // Apply character-specific modifiers
-          if (charAttrs) {
-            // Apply weaknesses (negative changes)
-            if (charAttrs.weakness) {
-              if (charAttrs.weakness.sleep)
-                sleepCost = Math.round(sleepCost * charAttrs.weakness.sleep);
-              if (charAttrs.weakness.hunger)
-                hungerCost = Math.round(hungerCost * charAttrs.weakness.hunger);
-              if (charAttrs.weakness.happiness)
-                happinessGain = Math.round(
-                  happinessGain * charAttrs.weakness.happiness
-                );
-            }
-
-            // Apply strengths (positive changes)
-            if (charAttrs.strength) {
-              if (charAttrs.strength.happiness)
-                happinessGain = Math.round(
-                  happinessGain * charAttrs.strength.happiness
-                );
-            }
-          }
-
-          // Apply changes
-          updateStats("sleep", sleepCost);
-          updateStats("hunger", hungerCost);
-          updateStats("hygiene", hygieneCost);
-          updateStats("happiness", happinessGain);
-
-          // Add log entry with character-specific effects
-          let message = "Anda menjelajahi area sekitar...";
-          if (char === "Revlog") message += " (Happiness +50%)";
-          else if (char === "Robert") message += " (Happiness +50%)";
-          else if (char === "Dimsum") message += " (Happiness -30%)";
-          addLogEntry(message);
+          updateStats("sleep", -5);
+          updateStats("hunger", -10);
+          updateStats("hygiene", -5);
+          updateStats("happiness", 25);
+          addLogEntry("Anda menjelajahi area sekitar...");
 
           setTimeout(() => {
             // Cari item yang belum dikumpulkan
@@ -1012,15 +1195,7 @@
               // Random efek eksplorasi
               const effect = Math.random();
               if (effect < 0.3) {
-                let coins = Math.floor(Math.random() * 10) + 2;
-                // Apply character-specific money bonus
-                if (
-                  charAttrs &&
-                  charAttrs.strength &&
-                  charAttrs.strength.money
-                ) {
-                  coins = Math.round(coins * charAttrs.strength.money);
-                }
+                const coins = Math.floor(Math.random() * 10) + 2;
                 gameState.playerStats.money += coins;
                 addLogEntry(`Anda menemukan ${coins} koin!`);
                 updateStatusDisplay();
@@ -1039,38 +1214,170 @@
         }
       }
 
-      // Event listeners for keyboard
-      document.addEventListener("keydown", (event) => {
-        switch (event.key) {
-          case "ArrowUp":
-            movePlayer("up");
-            break;
-          case "ArrowDown":
-            movePlayer("down");
-            break;
-          case "ArrowLeft":
-            movePlayer("left");
-            break;
-          case "ArrowRight":
-            movePlayer("right");
-            break;
-          case "i":
-          case "I":
-            toggleInventory(true);
-            break;
-          case "Escape":
-            toggleInventory(false);
-            break;
+      // Function to handle buying souvenirs
+      function buySouvenirs() {
+        const cost = 50; // Cost of souvenirs
+        if (gameState.playerStats.money >= cost) {
+          gameState.playerStats.money -= cost;
+          addLogEntry(`Anda membeli oleh-oleh. Biaya: ${cost} koin.`);
+          updateStatusDisplay();
+        } else {
+          addLogEntry("Uang tidak cukup untuk membeli oleh-oleh!");
         }
-      });
+      }
 
-      // Setup tombol kembali ke peta dunia
-      document.getElementById("back-to-world").addEventListener("click", () => {
-        // Simpan posisi player dan status saat ini
-        saveGameState();
+      // Function to handle eating at a local restaurant
+      function eatAtLocalRestaurant() {
+        const cost = 30; // Cost of eating at the restaurant
+        const hungerGain = 40; // Hunger gain from eating
+        if (gameState.playerStats.money >= cost) {
+          gameState.playerStats.money -= cost;
+          updateStats("hunger", hungerGain);
+          addLogEntry(
+            `Anda makan di restoran lokal. Hunger +${hungerGain} (Biaya: ${cost} koin).`
+          );
+          updateStatusDisplay();
+        } else {
+          addLogEntry("Uang tidak cukup untuk makan di restoran lokal!");
+        }
+      }
 
-        // Redirect ke peta utama
-        window.location.href = "MainGame.html";
+      // Update setupEventListeners to include new buttons
+      function setupEventListeners() {
+        // Navigation buttons
+        document.querySelectorAll(".nav-button").forEach((button) => {
+          button.addEventListener("click", () => {
+            if (!isMoving && !isActionInProgress) {
+              const direction = button.getAttribute("data-direction");
+              movePlayer(direction);
+            }
+          });
+        });
+
+        // Action buttons
+        const exploreButton = document.querySelector(".action-button.explore");
+        if (exploreButton) {
+          exploreButton.addEventListener("click", () =>
+            handleActionButton(exploreLocation)
+          );
+
+          // Info popup listeners
+          exploreButton.addEventListener("mouseenter", function () {
+            document.getElementById("explore-info-popup").style.display =
+              "block";
+          });
+
+          exploreButton.addEventListener("mouseleave", function () {
+            document.getElementById("explore-info-popup").style.display =
+              "none";
+          });
+        }
+
+        // Inventory button
+        const inventoryButton = document.querySelector(
+          ".action-button.inventory"
+        );
+        if (inventoryButton) {
+          inventoryButton.addEventListener("click", () =>
+            handleActionButton(() => toggleInventory(true))
+          );
+        }
+
+        // Back to world button
+        const backButton = document.getElementById("back-to-world");
+        if (backButton) {
+          backButton.addEventListener("click", () => {
+            handleActionButton(() => {
+              saveGameState();
+              window.location.href = "MainGame.html";
+            });
+          });
+        }
+
+        // Close inventory button
+        const closeInventoryButton = document.querySelector(".close-inventory");
+        if (closeInventoryButton) {
+          closeInventoryButton.addEventListener("click", () =>
+            handleActionButton(() => toggleInventory(false))
+          );
+        }
+
+        // Buy Souvenirs button
+        const souvenirButton = document.querySelector("#buy-souvenirs");
+        if (souvenirButton) {
+          let lastClickTime = 0;
+          souvenirButton.addEventListener("click", () => {
+            const currentTime = Date.now();
+            if (currentTime - lastClickTime < 1000) {
+              // Prevent clicks within 1 second
+              return;
+            }
+            lastClickTime = currentTime;
+            handleActionButton(buySouvenirs);
+          });
+
+          // Add tooltip listeners
+          souvenirButton.addEventListener("mouseenter", () => {
+            document.getElementById("souvenirs-info-popup").style.display =
+              "block";
+          });
+          souvenirButton.addEventListener("mouseleave", () => {
+            document.getElementById("souvenirs-info-popup").style.display =
+              "none";
+          });
+        }
+
+        // Local Restaurant button
+        const restaurantButton = document.querySelector("#eat-local");
+        if (restaurantButton) {
+          let lastClickTime = 0;
+          restaurantButton.addEventListener("click", () => {
+            const currentTime = Date.now();
+            if (currentTime - lastClickTime < 1000) {
+              // Prevent clicks within 1 second
+              return;
+            }
+            lastClickTime = currentTime;
+            handleActionButton(eatAtLocalRestaurant);
+          });
+
+          // Add tooltip listeners
+          restaurantButton.addEventListener("mouseenter", () => {
+            document.getElementById("restaurant-info-popup").style.display =
+              "block";
+          });
+          restaurantButton.addEventListener("mouseleave", () => {
+            document.getElementById("restaurant-info-popup").style.display =
+              "none";
+          });
+        }
+      }
+
+      // Update keyboard event listener to remove sound (movePlayer will handle it)
+      document.addEventListener("keydown", function (event) {
+        if (!isMoving && !isActionInProgress) {
+          switch (event.key) {
+            case "ArrowUp":
+              movePlayer("up");
+              break;
+            case "ArrowDown":
+              movePlayer("down");
+              break;
+            case "ArrowLeft":
+              movePlayer("left");
+              break;
+            case "ArrowRight":
+              movePlayer("right");
+              break;
+            case "i":
+            case "I":
+              handleActionButton(() => toggleInventory(true));
+              break;
+            case "Escape":
+              handleActionButton(() => toggleInventory(false));
+              break;
+          }
+        }
       });
 
       // Initialize game
@@ -1091,58 +1398,15 @@
         // Set up event listeners
         setupEventListeners();
 
-        // Add initial log entry
+        // Get player name from localStorage
+        const playerName = localStorage.getItem("playerName") || "Player";
+
+        // Add initial log entry with player name
+        addLogEntry(`Game dimulai dengan ${playerName}.`);
         addLogEntry(
           `Anda memasuki PAPUA dengan karakter ${gameState.selectedCharacter}.`
         );
         addLogEntry("Jelajahi dan temukan barang berharga!");
-      }
-
-      // Setup event listeners
-      function setupEventListeners() {
-        // Navigation buttons
-        document.querySelectorAll(".nav-button").forEach((button) => {
-          button.addEventListener("click", () => {
-            const direction = button.getAttribute("data-direction");
-            movePlayer(direction);
-          });
-        });
-
-        // Action buttons
-        document
-          .querySelector(".action-button.explore")
-          .addEventListener("click", exploreLocation);
-
-        document
-          .querySelector(".action-button.inventory")
-          .addEventListener("click", () => {
-            toggleInventory(true);
-          });
-
-        document
-          .querySelector(".action-button.attack")
-          .addEventListener("click", () => {
-            addLogEntry("Tidak ada musuh untuk diserang.");
-          });
-
-        document
-          .querySelector(".action-button.heal")
-          .addEventListener("click", () => {
-            if (gameState.playerStats.hygiene >= 15) {
-              updateStats("hygiene", -15);
-              updateStats("hunger", 20);
-              addLogEntry("Anda menggunakan sihir penyembuhan. Hunger +20!");
-            } else {
-              addLogEntry("Hygiene tidak cukup untuk penyembuhan!");
-            }
-          });
-
-        // Tombol tutup inventaris
-        document
-          .querySelector(".close-inventory")
-          .addEventListener("click", () => {
-            toggleInventory(false);
-          });
       }
 
       function checkLowStats() {

@@ -1,74 +1,127 @@
 body {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-    font-family: Arial, sans-serif;
-    text-align: center;
-    background-image: url('/BG/Background\ nusantara.jpg');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  text-align: center;
+  background: linear-gradient(135deg, #000000, #0a2472, #001c55);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(0, 150, 255, 0.05) 0px,
+    rgba(0, 150, 255, 0.05) 2px,
+    transparent 2px,
+    transparent 4px
+  );
+  pointer-events: none;
+}
+
+@keyframes gradientBG {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.game-title {
+  position: relative;
+  z-index: 1;
 }
 
 h1 {
-    font-size: 5.2em;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
-    margin-bottom: 10px;
-    color: white;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  font-size: 5.2em;
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(0, 150, 255, 0.5), 0 0 20px rgba(0, 150, 255, 0.3),
+    0 0 30px rgba(0, 150, 255, 0.2);
+  animation: glow 2s ease-in-out infinite alternate;
 }
 
 h2 {
-    font-size: 4em;
-    font-family: sans-serif;
-    margin-bottom: 20px;
-    color: white;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  font-size: 2.5em;
+  font-weight: 600;
+  margin-bottom: 40px;
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  opacity: 0.9;
 }
 
-button {
-    font-size: 3em;
-    padding: 10px 20px;
-    border: 2px solid black;
-    background-color: transparent;
-    cursor: pointer;
-    border-radius: 10px;
-    transition: 0.3s;
-    font-weight: bold;
-    color: white;
+.start-button {
+  font-size: 2em;
+  padding: 15px 50px;
+  border: 3px solid rgba(0, 150, 255, 0.8);
+  background-color: rgba(0, 150, 255, 0.1);
+  cursor: pointer;
+  border-radius: 50px;
+  transition: all 0.3s ease;
+  font-weight: bold;
+  color: white;
+  text-decoration: none;
+  backdrop-filter: blur(5px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
-button:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    transform: scale(1.1);
+.start-button:hover {
+  background-color: rgba(0, 150, 255, 0.2);
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 150, 255, 0.3);
+}
+
+@keyframes glow {
+  from {
+    text-shadow: 0 0 10px rgba(0, 150, 255, 0.5),
+      0 0 20px rgba(0, 150, 255, 0.3), 0 0 30px rgba(0, 150, 255, 0.2);
+  }
+  to {
+    text-shadow: 0 0 20px rgba(0, 150, 255, 0.6),
+      0 0 30px rgba(0, 150, 255, 0.4), 0 0 40px rgba(0, 150, 255, 0.3);
+  }
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    h1 {
-        font-size: 2em;
-    }
-    h2 {
-        font-size: 1.5em;
-    }
-    button {
-        font-size: 1.2em;
-        padding: 8px 16px;
-    }
+  h1 {
+    font-size: 3.5em;
+  }
+  h2 {
+    font-size: 1.8em;
+  }
+  .start-button {
+    font-size: 1.5em;
+    padding: 12px 40px;
+  }
 }
 
 @media (max-width: 480px) {
-    h1 {
-        font-size: 1.8em;
-    }
-    h2 {
-        font-size: 1.2em;
-    }
-    button {
-        font-size: 1em;
-        padding: 6px 12px;
-    }
+  h1 {
+    font-size: 2.5em;
+  }
+  h2 {
+    font-size: 1.4em;
+  }
+  .start-button {
+    font-size: 1.2em;
+    padding: 10px 30px;
+  }
 }
